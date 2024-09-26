@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
-    <!-- Include the required libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/3.3.2/bitcoinjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Include the updated libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/5.2.0/bitcoinjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body>
     <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
@@ -69,23 +69,27 @@
             publicKeyText.textContent = address;
             container.appendChild(publicKeyText);
 
-            // Generate QR codes
+            // Generate QR codes using the updated QRCode library
             var privateKeyQRContainer = document.createElement('div');
             var publicKeyQRContainer = document.createElement('div');
 
             container.appendChild(privateKeyQRContainer);
             container.appendChild(publicKeyQRContainer);
 
-            var qrcodePrivateKey = new QRCode(privateKeyQRContainer, {
-                text: privateKeyWIF,
-                width: 128,
-                height: 128,
+            // Generate QR code for private key
+            QRCode.toDataURL(privateKeyWIF, { width: 128, height: 128 }, function (err, url) {
+                if (err) console.error(err);
+                var img = document.createElement('img');
+                img.src = url;
+                privateKeyQRContainer.appendChild(img);
             });
 
-            var qrcodePublicKey = new QRCode(publicKeyQRContainer, {
-                text: address,
-                width: 128,
-                height: 128,
+            // Generate QR code for public address
+            QRCode.toDataURL(address, { width: 128, height: 128 }, function (err, url) {
+                if (err) console.error(err);
+                var img = document.createElement('img');
+                img.src = url;
+                publicKeyQRContainer.appendChild(img);
             });
         }
 
