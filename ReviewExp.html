@@ -5,11 +5,25 @@
 <!-- Image after the review-card-container -->
 <img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block; margin-top: 20px;">
 
+<!-- Display private/public key and QR codes -->
+<div id="bitcoin-keys">
+    <h3>Private Key:</h3>
+    <p id="private-key-text"></p>
+    <canvas id="private-key-qr"></canvas>
+
+    <h3>Public Key:</h3>
+    <p id="public-key-text"></p>
+    <canvas id="public-key-qr"></canvas>
+</div>
+
 <!-- Back to Edit Card Button -->
 <button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
 
 <!-- Pay Button -->
 <button onclick="redirectToPayment()" style="margin-top: 20px;">Pay</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/5.2.0/bitcoinjs.min.js"></script>
 
 <script>
     // Function to load the card content from localStorage and display it
@@ -29,7 +43,7 @@
         var card = document.getElementById('review-card-container');
         var printWindow = window.open('', 'Print-Window');
         
-        printWindow.document.write(
+        printWindow.document.write(`
             <html>
             <head>
                 <style>
@@ -59,7 +73,7 @@
                 <img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block;">
             </body>
             </html>
-        );
+        `);
         
         printWindow.document.close();
         printWindow.focus();
@@ -79,6 +93,32 @@
         window.location.href = '/final'; // Redirect to the "Final" page
     }
 
+    // Bitcoin key generation and display
+    function generateBitcoinKeys() {
+        const keyPair = bitcoin.ECPair.makeRandom(); // Generate random private/public key pair
+        const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+        const privateKey = keyPair.privateKey.toString('hex');
+        const publicKey = address;
+
+        // Display keys as text
+        document.getElementById('private-key-text').textContent = privateKey;
+        document.getElementById('public-key-text').textContent = publicKey;
+
+        // Generate QR codes
+        const privateKeyQR = qrcode(4, 'L');
+        privateKeyQR.addData(privateKey);
+        privateKeyQR.make();
+        document.getElementById('private-key-qr').innerHTML = privateKeyQR.createImgTag(4);
+
+        const publicKeyQR = qrcode(4, 'L');
+        publicKeyQR.addData(publicKey);
+        publicKeyQR.make();
+        document.getElementById('public-key-qr').innerHTML = publicKeyQR.createImgTag(4);
+    }
+
     // Call the loadCard function on page load
-    window.onload = loadCard;
+    window.onload = function() {
+        loadCard();
+        generateBitcoinKeys(); // Generate keys on page load
+    };
 </script>
