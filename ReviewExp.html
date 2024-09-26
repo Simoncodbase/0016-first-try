@@ -1,124 +1,106 @@
-<div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
-    <!-- The card content will be displayed here -->
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitcoin Card Generator</title>
+    <!-- Include the required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/3.3.2/bitcoinjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
+        <!-- The card content will be displayed here -->
+    </div>
 
-<!-- Image after the review-card-container -->
-<img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block; margin-top: 20px;">
+    <!-- Image after the review-card-container -->
+    <img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block; margin-top: 20px;">
 
-<!-- Display private/public key and QR codes -->
-<div id="bitcoin-keys">
-    <h3>Private Key:</h3>
-    <p id="private-key-text"></p>
-    <canvas id="private-key-qr"></canvas>
+    <!-- Container to display the generated addresses and QR codes -->
+    <div id="bitcoin-addresses-container" style="margin-top: 20px;">
+        <!-- The generated addresses and QR codes will be displayed here -->
+    </div>
 
-    <h3>Public Key:</h3>
-    <p id="public-key-text"></p>
-    <canvas id="public-key-qr"></canvas>
-</div>
+    <!-- Generate Bitcoin Addresses Button -->
+    <button onclick="generateBitcoinAddresses()" style="margin-top: 20px;">Generate Bitcoin Addresses</button>
 
-<!-- Back to Edit Card Button -->
-<button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
+    <!-- Back to Edit Card Button -->
+    <button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
 
-<!-- Pay Button -->
-<button onclick="redirectToPayment()" style="margin-top: 20px;">Pay</button>
+    <!-- Pay Button -->
+    <button onclick="redirectToPayment()" style="margin-top: 20px;">Pay</button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/5.2.0/bitcoinjs.min.js"></script>
+    <script>
+        // Function to load the card content from localStorage and display it
+        function loadCard() {
+            const cardHTML = localStorage.getItem('cardHTML');
 
-<script>
-    // Function to load the card content from localStorage and display it
-    function loadCard() {
-        const cardHTML = localStorage.getItem('cardHTML');
-        
-        if (cardHTML) {
-            const reviewCardContainer = document.getElementById('review-card-container');
-            reviewCardContainer.innerHTML = cardHTML;
-        } else {
-            console.error('No card data found in localStorage');
+            if (cardHTML) {
+                const reviewCardContainer = document.getElementById('review-card-container');
+                reviewCardContainer.innerHTML = cardHTML;
+            } else {
+                console.error('No card data found in localStorage');
+            }
         }
-    }
 
-    // Function to print the card with centered layout
-    function printCard() {
-        var card = document.getElementById('review-card-container');
-        var printWindow = window.open('', 'Print-Window');
-        
-        printWindow.document.write(`
-            <html>
-            <head>
-                <style>
-                    @media print {
-                        body {
-                            margin: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100vh;
-                            width: 100vw;
-                        }
-                        #review-card-container, img {
-                            border: 1px solid #000;
-                        }
-                        @page {
-                            margin: 0;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
-                    ${card.innerHTML}
-                </div>
-                <!-- Include image in the print window as well -->
-                <img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block;">
-            </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(function () {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    }
+        // Function to generate Bitcoin addresses and QR codes
+        function generateBitcoinAddresses() {
+            // Use bitcoinjs-lib to generate a key pair
+            var keyPair = bitcoin.ECPair.makeRandom();
+            var privateKeyWIF = keyPair.toWIF();
+            var { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
 
-    // Function to go back to the home page for editing
-    function backToEditCard() {
-        window.location.href = '/'; // Redirect back to the home page
-    }
+            // Display the private key and public address
+            var container = document.getElementById('bitcoin-addresses-container');
+            container.innerHTML = ''; // Clear previous content
 
-    // Function to redirect to the payment page
-    function redirectToPayment() {
-        window.location.href = '/final'; // Redirect to the "Final" page
-    }
+            var privateKeyLabel = document.createElement('p');
+            privateKeyLabel.textContent = 'Private Key (WIF):';
+            container.appendChild(privateKeyLabel);
 
-    // Bitcoin key generation and display
-    function generateBitcoinKeys() {
-        const keyPair = bitcoin.ECPair.makeRandom(); // Generate random private/public key pair
-        const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
-        const privateKey = keyPair.privateKey.toString('hex');
-        const publicKey = address;
+            var privateKeyText = document.createElement('p');
+            privateKeyText.textContent = privateKeyWIF;
+            container.appendChild(privateKeyText);
 
-        // Display keys as text
-        document.getElementById('private-key-text').textContent = privateKey;
-        document.getElementById('public-key-text').textContent = publicKey;
+            var publicKeyLabel = document.createElement('p');
+            publicKeyLabel.textContent = 'Public Address:';
+            container.appendChild(publicKeyLabel);
 
-        // Generate QR codes
-        const privateKeyQR = qrcode(4, 'L');
-        privateKeyQR.addData(privateKey);
-        privateKeyQR.make();
-        document.getElementById('private-key-qr').innerHTML = privateKeyQR.createImgTag(4);
+            var publicKeyText = document.createElement('p');
+            publicKeyText.textContent = address;
+            container.appendChild(publicKeyText);
 
-        const publicKeyQR = qrcode(4, 'L');
-        publicKeyQR.addData(publicKey);
-        publicKeyQR.make();
-        document.getElementById('public-key-qr').innerHTML = publicKeyQR.createImgTag(4);
-    }
+            // Generate QR codes
+            var privateKeyQRContainer = document.createElement('div');
+            var publicKeyQRContainer = document.createElement('div');
 
-    // Call the loadCard function on page load
-    window.onload = function() {
-        loadCard();
-        generateBitcoinKeys(); // Generate keys on page load
-    };
-</script>
+            container.appendChild(privateKeyQRContainer);
+            container.appendChild(publicKeyQRContainer);
+
+            var qrcodePrivateKey = new QRCode(privateKeyQRContainer, {
+                text: privateKeyWIF,
+                width: 128,
+                height: 128,
+            });
+
+            var qrcodePublicKey = new QRCode(publicKeyQRContainer, {
+                text: address,
+                width: 128,
+                height: 128,
+            });
+        }
+
+        // Function to go back to the home page for editing
+        function backToEditCard() {
+            window.location.href = '/'; // Redirect back to the home page
+        }
+
+        // Function to redirect to the payment page
+        function redirectToPayment() {
+            window.location.href = '/final'; // Redirect to the "Final" page
+        }
+
+        // Call the loadCard function on page load
+        window.onload = loadCard;
+    </script>
+</body>
+</html>
