@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
     <!-- Include the required libraries -->
-    <script src="https://unpkg.com/bitcoinjs-lib@3.3.2/dist/bitcoinjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/2.5.0/bitcoinjs-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -45,12 +45,10 @@
         // Function to generate Bitcoin addresses and QR codes
         function generateBitcoinAddresses() {
             try {
-                // Generate a random key pair
-                var keyPair = bitcoin.ECPair.makeRandom();
-                var privateKeyWIF = keyPair.toWIF();
-                var publicKey = keyPair.getPublicKeyBuffer();
-                var publicKeyHash = bitcoin.crypto.hash160(publicKey);
-                var address = bitcoin.address.toBase58Check(publicKeyHash, bitcoin.networks.bitcoin.pubKeyHash);
+                // Use BitcoinJS to generate a key pair
+                var key = new Bitcoin.ECKey.makeRandom();
+                var privateKeyWIF = key.toWIF();
+                var address = key.pub.getAddress().toString();
 
                 // Display the private key and public address
                 var container = document.getElementById('bitcoin-addresses-container');
