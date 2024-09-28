@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
     <!-- Include the required libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bitcore-lib@0.15.0/bitcore-lib.min.js"></script>
+    <script src="https://unpkg.com/bitcoinjs-lib@3.3.2/dist/bitcoinjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -42,12 +42,15 @@
             }
         }
 
-        // Function to generate Bitcoin addresses and QR codes using bitcore-lib
+        // Function to generate Bitcoin addresses and QR codes
         function generateBitcoinAddresses() {
             try {
-                // Generate a new private key
-                var privateKey = new bitcore.PrivateKey();
-                var address = privateKey.toAddress();
+                // Generate a random key pair
+                var keyPair = bitcoin.ECPair.makeRandom();
+                var privateKeyWIF = keyPair.toWIF();
+                var publicKey = keyPair.getPublicKeyBuffer();
+                var publicKeyHash = bitcoin.crypto.hash160(publicKey);
+                var address = bitcoin.address.toBase58Check(publicKeyHash, bitcoin.networks.bitcoin.pubKeyHash);
 
                 // Display the private key and public address
                 var container = document.getElementById('bitcoin-addresses-container');
@@ -59,7 +62,7 @@
                 container.appendChild(privateKeyLabel);
 
                 var privateKeyText = document.createElement('p');
-                privateKeyText.textContent = privateKey.toWIF();
+                privateKeyText.textContent = privateKeyWIF;
                 container.appendChild(privateKeyText);
 
                 // Display public address
@@ -68,7 +71,7 @@
                 container.appendChild(publicKeyLabel);
 
                 var publicKeyText = document.createElement('p');
-                publicKeyText.textContent = address.toString();
+                publicKeyText.textContent = address;
                 container.appendChild(publicKeyText);
 
                 // Generate QR codes
@@ -80,14 +83,14 @@
 
                 // Generate QR code for private key
                 new QRCode(privateKeyQRContainer, {
-                    text: privateKey.toWIF(),
+                    text: privateKeyWIF,
                     width: 128,
                     height: 128,
                 });
 
                 // Generate QR code for public address
                 new QRCode(publicKeyQRContainer, {
-                    text: address.toString(),
+                    text: address,
                     width: 128,
                     height: 128,
                 });
@@ -112,3 +115,4 @@
     </script>
 </body>
 </html>
+
