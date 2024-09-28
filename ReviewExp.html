@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
     <!-- Include the required libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/5.2.0/bitcoinjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/3.3.2/bitcoinjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -48,7 +48,11 @@
                 // Use bitcoinjs-lib to generate a key pair
                 var keyPair = bitcoin.ECPair.makeRandom();
                 var privateKeyWIF = keyPair.toWIF();
-                var { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+                var publicKeyBuffer = keyPair.getPublicKeyBuffer();
+
+                // Generate the address from the public key
+                var hash = bitcoin.crypto.hash160(publicKeyBuffer);
+                var address = bitcoin.address.toBase58Check(hash, bitcoin.networks.bitcoin.pubKeyHash);
 
                 // Display the private key and public address
                 var container = document.getElementById('bitcoin-addresses-container');
@@ -94,6 +98,7 @@
                 });
             } catch (error) {
                 console.error('Error generating Bitcoin addresses:', error);
+                alert('Error generating Bitcoin addresses: ' + error.message);
             }
         }
 
