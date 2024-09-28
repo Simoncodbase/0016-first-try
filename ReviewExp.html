@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
-    <!-- Include the updated libraries -->
+    <!-- Include the required libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/5.2.0/bitcoinjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
@@ -44,53 +44,57 @@
 
         // Function to generate Bitcoin addresses and QR codes
         function generateBitcoinAddresses() {
-            // Use bitcoinjs-lib to generate a key pair
-            var keyPair = bitcoin.ECPair.makeRandom();
-            var privateKeyWIF = keyPair.toWIF();
-            var { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+            try {
+                // Use bitcoinjs-lib to generate a key pair
+                var keyPair = bitcoin.ECPair.makeRandom();
+                var privateKeyWIF = keyPair.toWIF();
+                var { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
 
-            // Display the private key and public address
-            var container = document.getElementById('bitcoin-addresses-container');
-            container.innerHTML = ''; // Clear previous content
+                // Display the private key and public address
+                var container = document.getElementById('bitcoin-addresses-container');
+                container.innerHTML = ''; // Clear previous content
 
-            var privateKeyLabel = document.createElement('p');
-            privateKeyLabel.textContent = 'Private Key (WIF):';
-            container.appendChild(privateKeyLabel);
+                // Display private key
+                var privateKeyLabel = document.createElement('p');
+                privateKeyLabel.textContent = 'Private Key (WIF):';
+                container.appendChild(privateKeyLabel);
 
-            var privateKeyText = document.createElement('p');
-            privateKeyText.textContent = privateKeyWIF;
-            container.appendChild(privateKeyText);
+                var privateKeyText = document.createElement('p');
+                privateKeyText.textContent = privateKeyWIF;
+                container.appendChild(privateKeyText);
 
-            var publicKeyLabel = document.createElement('p');
-            publicKeyLabel.textContent = 'Public Address:';
-            container.appendChild(publicKeyLabel);
+                // Display public address
+                var publicKeyLabel = document.createElement('p');
+                publicKeyLabel.textContent = 'Public Address:';
+                container.appendChild(publicKeyLabel);
 
-            var publicKeyText = document.createElement('p');
-            publicKeyText.textContent = address;
-            container.appendChild(publicKeyText);
+                var publicKeyText = document.createElement('p');
+                publicKeyText.textContent = address;
+                container.appendChild(publicKeyText);
 
-            // Generate QR codes using the updated QRCode library
-            var privateKeyQRContainer = document.createElement('div');
-            var publicKeyQRContainer = document.createElement('div');
+                // Generate QR codes
+                var privateKeyQRContainer = document.createElement('div');
+                var publicKeyQRContainer = document.createElement('div');
 
-            container.appendChild(privateKeyQRContainer);
-            container.appendChild(publicKeyQRContainer);
+                container.appendChild(privateKeyQRContainer);
+                container.appendChild(publicKeyQRContainer);
 
-            // Generate QR code for private key
-            QRCode.toDataURL(privateKeyWIF, { width: 128, height: 128 }, function (err, url) {
-                if (err) console.error(err);
-                var img = document.createElement('img');
-                img.src = url;
-                privateKeyQRContainer.appendChild(img);
-            });
+                // Generate QR code for private key
+                new QRCode(privateKeyQRContainer, {
+                    text: privateKeyWIF,
+                    width: 128,
+                    height: 128,
+                });
 
-            // Generate QR code for public address
-            QRCode.toDataURL(address, { width: 128, height: 128 }, function (err, url) {
-                if (err) console.error(err);
-                var img = document.createElement('img');
-                img.src = url;
-                publicKeyQRContainer.appendChild(img);
-            });
+                // Generate QR code for public address
+                new QRCode(publicKeyQRContainer, {
+                    text: address,
+                    width: 128,
+                    height: 128,
+                });
+            } catch (error) {
+                console.error('Error generating Bitcoin addresses:', error);
+            }
         }
 
         // Function to go back to the home page for editing
