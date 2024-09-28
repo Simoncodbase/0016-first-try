@@ -6,7 +6,6 @@
     <!-- Include the required libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bs58/4.0.1/bs58.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -44,6 +43,32 @@
             }
         }
 
+        // Base58 encoding function
+        function encodeBase58(buffer) {
+            const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            let carry, digits = [0];
+            for (let i = 0; i < buffer.length; i++) {
+                carry = buffer[i];
+                for (let j = 0; j < digits.length; ++j) {
+                    carry += digits[j] << 8;
+                    digits[j] = carry % 58;
+                    carry = (carry / 58) | 0;
+                }
+                while (carry) {
+                    digits.push(carry % 58);
+                    carry = (carry / 58) | 0;
+                }
+            }
+            let string = '';
+            for (let k = 0; buffer[k] === 0 && k < buffer.length - 1; k++) {
+                string += ALPHABET[0];
+            }
+            for (let q = digits.length - 1; q >= 0; q--) {
+                string += ALPHABET[digits[q]];
+            }
+            return string;
+        }
+
         // Function to generate Bitcoin addresses and QR codes without external Bitcoin libraries
         function generateBitcoinAddresses() {
             try {
@@ -74,7 +99,13 @@
 
                 // Create the address
                 var addressHex = networkByte + checksum;
-                var address = bs58.encode(Buffer.from(addressHex, 'hex'));
+                var addressBytes = CryptoJS.enc.Hex.parse(addressHex);
+                var addressWordArray = CryptoJS.enc.Hex.parse(addressHex);
+                var addressUint8Array = new Uint8Array(addressWordArray.sigBytes);
+                for (var i = 0; i < addressWordArray.sigBytes; i++) {
+                    addressUint8Array[i] = (addressWordArray.words[Math.floor(i / 4)] >>> (24 - (i % 4) * 8)) & 0xFF;
+                }
+                var address = encodeBase58(addressUint8Array);
 
                 // Display the private key and public address
                 var container = document.getElementById('bitcoin-addresses-container');
@@ -137,8 +168,16 @@
             // Append checksum to step1
             var step4 = step1 + checksum;
 
-            // Convert to Buffer and encode in Base58
-            var privateKeyWIF = bs58.encode(Buffer.from(step4, 'hex'));
+            // Convert to bytes
+            var privateKeyBytes = CryptoJS.enc.Hex.parse(step4);
+            var privateKeyWordArray = CryptoJS.enc.Hex.parse(step4);
+            var privateKeyUint8Array = new Uint8Array(privateKeyWordArray.sigBytes);
+            for (var i = 0; i < privateKeyWordArray.sigBytes; i++) {
+                privateKeyUint8Array[i] = (privateKeyWordArray.words[Math.floor(i / 4)] >>> (24 - (i % 4) * 8)) & 0xFF;
+            }
+
+            // Encode in Base58
+            var privateKeyWIF = encodeBase58(privateKeyUint8Array);
             return privateKeyWIF;
         }
 
