@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
     <!-- Include the required libraries -->
-    <script src="https://unpkg.com/browserify-bundle@1.0.0/bitcoinjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bs58/4.0.1/bs58.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -42,13 +44,37 @@
             }
         }
 
-        // Function to generate Bitcoin addresses and QR codes
+        // Function to generate Bitcoin addresses and QR codes without external Bitcoin libraries
         function generateBitcoinAddresses() {
             try {
-                // Use bitcoinjs to generate a key pair
-                var keyPair = bitcoinjs.bitcoin.ECPair.makeRandom();
-                var privateKeyWIF = keyPair.toWIF();
-                var { address } = bitcoinjs.bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+                // Generate private key using elliptic
+                var EC = elliptic.ec;
+                var ec = new EC('secp256k1');
+                var keyPair = ec.genKeyPair();
+                var privateKeyHex = keyPair.getPrivate('hex');
+
+                // Convert private key to WIF
+                var privateKeyWIF = wifEncode(privateKeyHex);
+
+                // Get public key
+                var publicKey = keyPair.getPublic(true, 'hex');
+
+                // Generate public address
+                var publicKeyBuffer = CryptoJS.enc.Hex.parse(publicKey);
+                var hash = CryptoJS.SHA256(publicKeyBuffer);
+                var ripemd160 = CryptoJS.RIPEMD160(hash);
+                var publicKeyHash = ripemd160.toString();
+
+                // Add network byte
+                var networkByte = '00' + publicKeyHash;
+
+                // Double SHA256 hash for checksum
+                var checksumFull = CryptoJS.SHA256(CryptoJS.SHA256(CryptoJS.enc.Hex.parse(networkByte))).toString();
+                var checksum = checksumFull.substr(0, 8);
+
+                // Create the address
+                var addressHex = networkByte + checksum;
+                var address = bs58.encode(Buffer.from(addressHex, 'hex'));
 
                 // Display the private key and public address
                 var container = document.getElementById('bitcoin-addresses-container');
@@ -96,6 +122,24 @@
                 console.error('Error generating Bitcoin addresses:', error);
                 alert('Error generating Bitcoin addresses: ' + error.message);
             }
+        }
+
+        // Helper function to encode private key to WIF
+        function wifEncode(privateKeyHex) {
+            // Add network byte
+            var step1 = '80' + privateKeyHex;
+
+            // Double SHA256 hash for checksum
+            var step2 = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(step1));
+            var step3 = CryptoJS.SHA256(step2);
+            var checksum = step3.toString().substr(0, 8);
+
+            // Append checksum to step1
+            var step4 = step1 + checksum;
+
+            // Convert to Buffer and encode in Base58
+            var privateKeyWIF = bs58.encode(Buffer.from(step4, 'hex'));
+            return privateKeyWIF;
         }
 
         // Function to go back to the home page for editing
