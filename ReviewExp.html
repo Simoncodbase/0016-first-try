@@ -120,6 +120,15 @@
                 privateKeyText.textContent = privateKeyWIF;
                 container.appendChild(privateKeyText);
 
+                // Generate QR code for private key directly below the private key
+                var privateKeyQRContainer = document.createElement('div');
+                container.appendChild(privateKeyQRContainer);
+                new QRCode(privateKeyQRContainer, {
+                    text: privateKeyWIF,
+                    width: 128,
+                    height: 128,
+                });
+
                 // Display public address
                 var publicKeyLabel = document.createElement('p');
                 publicKeyLabel.textContent = 'Public Address:';
@@ -129,26 +138,15 @@
                 publicKeyText.textContent = address;
                 container.appendChild(publicKeyText);
 
-                // Generate QR codes
-                var privateKeyQRContainer = document.createElement('div');
+                // Generate QR code for public address directly below the public address
                 var publicKeyQRContainer = document.createElement('div');
-
-                container.appendChild(privateKeyQRContainer);
                 container.appendChild(publicKeyQRContainer);
-
-                // Generate QR code for private key
-                new QRCode(privateKeyQRContainer, {
-                    text: privateKeyWIF,
-                    width: 128,
-                    height: 128,
-                });
-
-                // Generate QR code for public address
                 new QRCode(publicKeyQRContainer, {
                     text: address,
                     width: 128,
                     height: 128,
                 });
+
             } catch (error) {
                 console.error('Error generating Bitcoin addresses:', error);
                 alert('Error generating Bitcoin addresses: ' + error.message);
@@ -169,7 +167,6 @@
             var step4 = step1 + checksum;
 
             // Convert to bytes
-            var privateKeyBytes = CryptoJS.enc.Hex.parse(step4);
             var privateKeyWordArray = CryptoJS.enc.Hex.parse(step4);
             var privateKeyUint8Array = new Uint8Array(privateKeyWordArray.sigBytes);
             for (var i = 0; i < privateKeyWordArray.sigBytes; i++) {
