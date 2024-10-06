@@ -3,23 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Bitcoin Card Generator</title>
-    <!-- Include the required libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- No external scripts are needed after removing the address generation functionality -->
 </head>
 <body>
     <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
         <!-- The card content will be displayed here -->
     </div>
-
-    <!-- Container to display the generated addresses and QR codes -->
-    <div id="bitcoin-addresses-container" style="margin-top: 20px;">
-        <!-- The generated addresses and QR codes will be displayed here -->
-    </div>
-
-    <!-- Generate Bitcoin Addresses Button -->
-    <button onclick="generateBitcoinAddresses()" style="margin-top: 20px;">Generate Bitcoin Addresses</button>
 
     <!-- Back to Edit Card Button -->
     <button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
@@ -38,141 +27,6 @@
             } else {
                 console.error('No card data found in localStorage');
             }
-        }
-
-        // Base58 encoding function
-        function encodeBase58(buffer) {
-            const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-            let carry, digits = [0];
-            for (let i = 0; i < buffer.length; i++) {
-                carry = buffer[i];
-                for (let j = 0; j < digits.length; ++j) {
-                    carry += digits[j] << 8;
-                    digits[j] = carry % 58;
-                    carry = (carry / 58) | 0;
-                }
-                while (carry) {
-                    digits.push(carry % 58);
-                    carry = (carry / 58) | 0;
-                }
-            }
-            let string = '';
-            for (let k = 0; buffer[k] === 0 && k < buffer.length - 1; k++) {
-                string += ALPHABET[0];
-            }
-            for (let q = digits.length - 1; q >= 0; q--) {
-                string += ALPHABET[digits[q]];
-            }
-            return string;
-        }
-
-        // Function to generate Bitcoin addresses and QR codes without external Bitcoin libraries
-        function generateBitcoinAddresses() {
-            try {
-                // Generate private key using elliptic
-                var EC = elliptic.ec;
-                var ec = new EC('secp256k1');
-                var keyPair = ec.genKeyPair();
-                var privateKeyHex = keyPair.getPrivate('hex');
-
-                // Convert private key to WIF
-                var privateKeyWIF = wifEncode(privateKeyHex);
-
-                // Get public key
-                var publicKey = keyPair.getPublic(true, 'hex');
-
-                // Generate public address
-                var publicKeyBuffer = CryptoJS.enc.Hex.parse(publicKey);
-                var hash = CryptoJS.SHA256(publicKeyBuffer);
-                var ripemd160 = CryptoJS.RIPEMD160(hash);
-                var publicKeyHash = ripemd160.toString();
-
-                // Add network byte
-                var networkByte = '00' + publicKeyHash;
-
-                // Double SHA256 hash for checksum
-                var checksumFull = CryptoJS.SHA256(CryptoJS.SHA256(CryptoJS.enc.Hex.parse(networkByte))).toString();
-                var checksum = checksumFull.substr(0, 8);
-
-                // Create the address
-                var addressHex = networkByte + checksum;
-                var addressBytes = CryptoJS.enc.Hex.parse(addressHex);
-                var addressWordArray = CryptoJS.enc.Hex.parse(addressHex);
-                var addressUint8Array = new Uint8Array(addressWordArray.sigBytes);
-                for (var i = 0; i < addressWordArray.sigBytes; i++) {
-                    addressUint8Array[i] = (addressWordArray.words[Math.floor(i / 4)] >>> (24 - (i % 4) * 8)) & 0xFF;
-                }
-                var address = encodeBase58(addressUint8Array);
-
-                // Display the private key and public address
-                var container = document.getElementById('bitcoin-addresses-container');
-                container.innerHTML = ''; // Clear previous content
-
-                // Display private key
-                var privateKeyLabel = document.createElement('p');
-                privateKeyLabel.textContent = 'Private Key (WIF):';
-                container.appendChild(privateKeyLabel);
-
-                var privateKeyText = document.createElement('p');
-                privateKeyText.textContent = privateKeyWIF;
-                container.appendChild(privateKeyText);
-
-                // Generate QR code for private key directly below the private key
-                var privateKeyQRContainer = document.createElement('div');
-                container.appendChild(privateKeyQRContainer);
-                new QRCode(privateKeyQRContainer, {
-                    text: privateKeyWIF,
-                    width: 128,
-                    height: 128,
-                });
-
-                // Display public address
-                var publicKeyLabel = document.createElement('p');
-                publicKeyLabel.textContent = 'Public Address:';
-                container.appendChild(publicKeyLabel);
-
-                var publicKeyText = document.createElement('p');
-                publicKeyText.textContent = address;
-                container.appendChild(publicKeyText);
-
-                // Generate QR code for public address directly below the public address
-                var publicKeyQRContainer = document.createElement('div');
-                container.appendChild(publicKeyQRContainer);
-                new QRCode(publicKeyQRContainer, {
-                    text: address,
-                    width: 128,
-                    height: 128,
-                });
-
-            } catch (error) {
-                console.error('Error generating Bitcoin addresses:', error);
-                alert('Error generating Bitcoin addresses: ' + error.message);
-            }
-        }
-
-        // Helper function to encode private key to WIF
-        function wifEncode(privateKeyHex) {
-            // Add network byte
-            var step1 = '80' + privateKeyHex;
-
-            // Double SHA256 hash for checksum
-            var step2 = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(step1));
-            var step3 = CryptoJS.SHA256(step2);
-            var checksum = step3.toString().substr(0, 8);
-
-            // Append checksum to step1
-            var step4 = step1 + checksum;
-
-            // Convert to bytes
-            var privateKeyWordArray = CryptoJS.enc.Hex.parse(step4);
-            var privateKeyUint8Array = new Uint8Array(privateKeyWordArray.sigBytes);
-            for (var i = 0; i < privateKeyWordArray.sigBytes; i++) {
-                privateKeyUint8Array[i] = (privateKeyWordArray.words[Math.floor(i / 4)] >>> (24 - (i % 4) * 8)) & 0xFF;
-            }
-
-            // Encode in Base58
-            var privateKeyWIF = encodeBase58(privateKeyUint8Array);
-            return privateKeyWIF;
         }
 
         // Function to go back to the home page for editing
