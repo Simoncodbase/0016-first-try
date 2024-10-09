@@ -1,70 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Customized Card Creator</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Card Preview -->
-        <div id="card-container">
-            <!-- Background Image -->
-            <img id="background" src="" alt="Card Background">
-        </div>
+<div id="card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
+    <!-- Background Image (Initially hidden) -->
+    <img id="background" src="" style="width: 300px; height: 200px; position: absolute; top: 0; left: 0; display: none;">
+</div>
 
-        <!-- Sidebar Controls -->
-        <div class="sidebar">
-            <!-- Background Selector -->
-            <section class="section">
-                <h2>Select a Background</h2>
-                <div class="form-group">
-                    <label for="category-select">Category:</label>
-                    <select id="category-select" onchange="updateBackgrounds()">
-                        <option value="">--Select Category--</option>
-                        <option value="crypto-king">Crypto-King</option>
-                        <option value="crypto-queen">Crypto-Queen</option>
-                        <option value="birthday">Birthday</option>
-                        <option value="christmas">Christmas</option>
-                        <option value="upload-own-picture">Upload Own Picture</option>
-                    </select>
-                </div>
-                <!-- Upload Own Picture -->
-                <button id="upload-button" onclick="triggerFileInput()">Upload Picture</button>
-                <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
-                <!-- Background Images -->
-                <div id="background-images" class="background-images"></div>
-            </section>
-
-            <!-- Text Controls -->
-            <section class="section">
-                <h2>Customize Text</h2>
-                <div class="text-controls">
-                    <button onclick="addTextField()">Add Text Field</button>
-                    <button onclick="removeSelectedTextField()">Remove Selected Text Field</button>
-                    <div class="form-group">
-                        <label for="font-select">Font:</label>
-                        <select id="font-select" onchange="updateSelectedTextStyle()">
-                            <!-- Font options -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="font-size">Size:</label>
-                        <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
-                    </div>
-                    <div class="form-group">
-                        <label for="font-color">Color:</label>
-                        <input type="color" id="font-color" value="#000000" onchange="updateSelectedTextStyle()">
-                    </div>
-                </div>
-            </section>
-
-            <!-- Review Order Button -->
-            <button class="review-button" onclick="reviewOrder()">Review Order</button>
-        </div>
+<!-- Category Selector -->
+<div id="background-selector" style="margin-left: 10px;">
+    <h3>Select a Background</h3>
+    <div style="display: flex; align-items: center;">
+        <label for="category-select">Category:</label>
+        <select id="category-select" onchange="updateBackgrounds()" style="margin-right: 10px;">
+            <option value="">--Select Category--</option>
+            <option value="crypto-king">Crypto-King</option>
+            <option value="crypto-queen">Crypto-Queen</option>
+            <option value="birthday">Birthday</option>
+            <option value="christmas">Christmas</option>
+            <option value="upload-own-picture">Upload Own Picture</option>
+        </select>
+        <!-- Upload Own Picture Button -->
+        <button id="upload-button" onclick="triggerFileInput()" style="display: none;">Upload Own Picture</button>
+        <!-- Hidden File Input -->
+        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
     </div>
+    
+    <!-- Background Images will be displayed here -->
+    <div id="background-images" style="margin-top: 10px;">
+        <!-- Images will be inserted here based on the selected category -->
+    </div>
+</div>
 
-    <!-- JavaScript -->
-    <script src="script.js"></script>
-</body>
-</html>
+<!-- Add/Remove Text Buttons -->
+<button onclick="addTextField()" style="margin-top: 20px;">Add Text Field</button>
+<button onclick="removeSelectedTextField()" style="margin-top: 20px;">Remove Selected Text Field</button>
+
+<!-- Font, Size, and Color Selectors -->
+<div style="margin-top: 10px;">
+    <label for="font-select">Font:</label>
+    <select id="font-select" onchange="updateSelectedTextStyle()">
+        <option style="font-family: Arial;" value="Arial">Arial</option>
+        <option style="font-family: 'Times New Roman';" value="Times New Roman">Times New Roman</option>
+        <option style="font-family: 'Courier New';" value="Courier New">Courier New</option>
+        <option style="font-family: Georgia;" value="Georgia">Georgia</option>
+        <option style="font-family: Verdana;" value="Verdana">Verdana</option>
+        <option style="font-family: Tahoma;" value="Tahoma">Tahoma</option>
+        <option style="font-family: 'Trebuchet MS';" value="Trebuchet MS">Trebuchet MS</option>
+        <option style="font-family: 'Comic Sans MS';" value="Comic Sans MS">Comic Sans MS</option>
+        <option style="font-family: Impact;" value="Impact">Impact</option>
+        <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
+    </select>
+
+    <label for="font-size">Size:</label>
+    <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
+
+    <label for="font-color">Color:</label>
+    <input type="color" id="font-color" value="#000000" onchange="updateSelectedTextStyle()">
+</div>
+
+<!-- Review Order Button -->
+<button onclick="reviewOrder()" style="margin-top: 20px;">Review Order</button>
+
+<script>
+    // Data: category backgrounds
+    const categoryBackgrounds = {
+        'crypto-king': [
+            'https://via.placeholder.com/150x100?text=Crypto-King+1',
+            'https://via.placeholder.com/150x100?text=Crypto-King+2',
+            'https://via.placeholder.com/150x100?text=Crypto-King+3',
+        ],
+        'crypto-queen': [
+            'https://via.placeholder.com/150x100?text=Crypto-Queen+1',
+            'https://via.placeholder.com/150x100?text=Crypto-Queen+2',
+            'https://via.placeholder.com/150x100?text=Crypto-Queen+3',
+        ],
+        'birthday': [
+            'https://via.placeholder.com/150x100?text=Birthday+1',
+            'https://via.placeholder.com/150x100?text=Birthday+2',
+            'https://via.placeholder.com/150x100?text=Birthday+3',
+        ],
+        'christmas': [
+            'https://via.placeholder.com/150x100?text=Christmas+1',
+            'https://via.placeholder.com/150x100?text=Christmas+2',
+            'https://via.placeholder.com/150x100?text=Christmas+3',
+        ],
+    };
+
+    // Function to update background images based on selected category
+    function updateBackgrounds() {
+        const category = document.getElementById('category-select').value;
+        const backgroundImagesDiv = document.getElementById('background-images');
+        const uploadButton = document.getElementById('upload-button');
+
+        backgroundImagesDiv.innerHTML = ''; // Clear previous images
+        uploadButton.style.display = 'none'; // Hide the upload button by default
+
+        if (category === 'upload-own-picture') {
+            // Show the upload button
+            uploadButton.style.display = 'block';
+        } else if (category && categoryBackgrounds[category]) {
+            categoryBackgrounds[category].forEach(imageUrl => {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.style.cursor = 'pointer';
+                img.style.width = '150px';
+                img.style.height = '100px';
+                img.style.marginRight = '10px';
+                img.onclick = function() {
+                    changeBackground(imageUrl);
+                };
+                backgroundImagesDiv.appendChild(img);
+            });
+        }
+    }
+
+    // Function to trigger file input when upload button is clicked
+    function triggerFileInput() {
+        document.getElementById('file-input').click();
+    }
+
+    // Function to handle the file upload
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                // Display the uploaded image in the background-images div
+                const backgroundImagesDiv = document.getElementById('background-images');
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.style.cursor = 'pointer';
+                img.style.width = '150px';
+                img.style.height = '100px';
+                img.style.marginRight = '10px';
+                img.onclick = function() {
+                    changeBackground(imageUrl);
+                };
+                backgroundImagesDiv.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Function to change the background
+    function changeBackground(imageUrl) {
+        var backgroundImage = document.getElementById('background');
+        backgroundImage.src = imageUrl;
+        backgroundImage.style.display = 'block'; // Show the background when clicked
+    }
+
+    // Function to handle the review order and save the card content to localStorage
+    function reviewOrder() {
+        saveCardState(); // Save the current state of the card before navigating
+
+        // Clone the card-container to remove edit options like contenteditable and dashed borders
+        const cardContainer = document.getElementById('card-container');
+        const clonedCard = cardContainer.cloneNode(true);
+        clonedCard.querySelectorAll('[contenteditable]').forEach(el => {
+            el.removeAttribute('contenteditable');
+            el.style.border = 'none'; // Remove dashed borders for a clean look
+        });
+
+        // Store the cleaned-up card HTML in localStorage
+        localStorage.setItem('cardHTML', clonedCard.innerHTML);
+
+        // Redirect to the review page
+        window.location.href = '/review';
+    }
+
+    // Function to save the current state of the card for future editing
+    function saveCardState() {
+        const cardContainer = document.getElementById('card-container');
+        localStorage.setItem('cardState', cardContainer.innerHTML); // Save the full HTML of the card container
+    }
+
+    // Function to restore the saved card state (if exists) and reapply editable and draggable functionality
+    function restoreCardState() {
+        const savedState = localStorage.getItem('cardState');
+        if (savedState) {
+            document.getElementById('card-container').innerHTML = savedState;
+            // Reapply editable and draggable functionality to the restored elements
+            document.querySelectorAll('#card-container > div').forEach(el => {
+                el.setAttribute('contenteditable', 'true');
+                el.style.cursor = 'move';
+                el.onclick = function() {
+                    selectTextField(el);
+                };
+                makeDraggable(el);
+            });
+        }
+    }
+
+    // Call the restoreCardState function on page load to continue editing
+    window.onload = restoreCardState;
+
+    let textFieldCount = 0;
+    let selectedTextField = null;
+    let isDragging = false; // Flag to track if dragging
+
+    // Function to add a new text field
+    function addTextField() {
+        textFieldCount++;
+        const cardContainer = document.getElementById('card-container');
+        const newTextField = document.createElement('div');
+
+        newTextField.setAttribute('contenteditable', 'true');
+        newTextField.style.position = 'absolute';
+        newTextField.style.top = (textFieldCount * 20) + 'px';
+        newTextField.style.left = (textFieldCount * 20) + 'px';
+        newTextField.style.cursor = 'move';
+        newTextField.style.border = '1px dashed #000';
+        newTextField.style.padding = '5px';
+        newTextField.innerText = 'Editable Text';
+
+        // Add event listener to remove placeholder text when user starts typing
+        function removePlaceholderText() {
+            if (newTextField.innerText.trim() === 'Editable Text') {
+                newTextField.innerText = '';
+                newTextField.removeEventListener('input', removePlaceholderText);
+            }
+        }
+        newTextField.addEventListener('input', removePlaceholderText);
+
+        newTextField.onclick = function(event) {
+            if (!isDragging) {
+                selectTextField(newTextField);
+            }
+        };
+
+        cardContainer.appendChild(newTextField);
+        makeDraggable(newTextField);
+
+        // Automatically select the new text field
+        selectTextField(newTextField);
+    }
+
+    // Function to select a text field
+    function selectTextField(field) {
+        if (selectedTextField) {
+            selectedTextField.style.border = '1px dashed #000'; // Unselect current field
+        }
+        selectedTextField = field;
+        selectedTextField.style.border = '2px solid red'; // Highlight selected field
+        selectedTextField.focus(); // Focus on the text field for editing
+    }
+
+    // Function to remove the selected text field
+    function removeSelectedTextField() {
+        if (selectedTextField) {
+            selectedTextField.remove();
+            selectedTextField = null;
+        }
+    }
+
+    // Update font, size, and color of the selected text field
+    function updateSelectedTextStyle() {
+        if (!selectedTextField) return;
+
+        const font = document.getElementById('font-select').value;
+        const size = document.getElementById('font-size').value;
+        const color = document.getElementById('font-color').value;
+
+        selectedTextField.style.fontFamily = font;
+        selectedTextField.style.fontSize = size + 'px';
+        selectedTextField.style.color = color;
+    }
+
+    // Make text field draggable
+    function makeDraggable(element) {
+        let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
+
+        element.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e.preventDefault();
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e.preventDefault();
+            isDragging = true; // Set the dragging flag when moving the element
+            offsetX = mouseX - e.clientX;
+            offsetY = mouseY - e.clientY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            element.style.top = (element.offsetTop - offsetY) + "px";
+            element.style.left = (element.offsetLeft - offsetX) + "px";
+        }
+
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+            setTimeout(() => { isDragging = false; }, 100); // Delay resetting the dragging flag
+        }
+    }
+</script>
