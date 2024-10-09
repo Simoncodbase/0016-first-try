@@ -1,0 +1,138 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    padding: 20px;
+}
+
+#card-container {
+    width: 600px;
+    height: 400px;
+    position: relative;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    margin-right: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#card-container #background {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.sidebar {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.section h2 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    color: #444;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group select,
+.form-group input[type="number"],
+.form-group input[type="color"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+#upload-button {
+    display: none;
+    margin-bottom: 15px;
+}
+
+#file-input {
+    display: none;
+}
+
+.background-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.background-images img {
+    width: 100px;
+    height: 70px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+
+.background-images img:hover {
+    border-color: #007BFF;
+}
+
+.text-controls button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background-color: #007BFF;
+    border: none;
+    color: #fff;
+    font-size: 1em;
+}
+
+.text-controls button:hover {
+    background-color: #0056b3;
+}
+
+.review-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2em;
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.review-button:hover {
+    background-color: #218838;
+}
+
+#card-container div[contenteditable="true"] {
+    border: 1px dashed transparent;
+    padding: 5px;
+    position: absolute;
+    cursor: move;
+}
+
+#card-container div[contenteditable="true"]:focus {
+    outline: none;
+    border-color: #007BFF;
+}
