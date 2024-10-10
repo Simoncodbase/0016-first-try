@@ -1,3 +1,4 @@
+You said:
 <div id="card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
     <!-- Background Image (Initially hidden) -->
     <img id="background" src="" style="width: 300px; height: 200px; position: absolute; top: 0; left: 0; display: none;">
@@ -210,16 +211,6 @@
         newTextField.style.border = '1px dashed #000';
         newTextField.style.padding = '5px';
         newTextField.innerText = 'Editable Text';
-
-        // Add event listener to remove placeholder text when user starts typing
-        function removePlaceholderText() {
-            if (newTextField.innerText.trim() === 'Editable Text') {
-                newTextField.innerText = '';
-                newTextField.removeEventListener('input', removePlaceholderText);
-            }
-        }
-        newTextField.addEventListener('input', removePlaceholderText);
-
         newTextField.onclick = function(event) {
             if (!isDragging) {
                 selectTextField(newTextField);
@@ -228,9 +219,6 @@
 
         cardContainer.appendChild(newTextField);
         makeDraggable(newTextField);
-
-        // Automatically select the new text field
-        selectTextField(newTextField);
     }
 
     // Function to select a text field
