@@ -1,58 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        #card-container {
-            width: 300px;
-            height: 200px;
-            position: relative;
-            border: 1px solid #000;
-            background-color: grey;
-            overflow: hidden;
-            touch-action: none; /* Prevent touch gestures like pinch-to-zoom */
-        }
-
-        #background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
-
-        .resize-handle {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.2); /* Semi-transparent for visibility */
-            z-index: 10;
-        }
-
-        .resize-handle.bottom-right {
-            width: 20px;
-            height: 20px;
-            right: 0;
-            bottom: 0;
-            cursor: nwse-resize;
-        }
-
-        .resize-handle.bottom {
-            width: 100%;
-            height: 10px;
-            bottom: 0;
-            left: 0;
-            cursor: ns-resize;
-        }
-    </style>
-</head>
-<body>
-
-<div id="card-container">
+<div id="card-container" style="width: 300px; height: 300px; position: relative; border: 1px solid #000; background-color: grey;">
     <!-- Background Image (Initially hidden) -->
-    <img id="background" src="" alt="Background Image">
-
-    <!-- Resize Handles -->
-    <div class="resize-handle bottom-right"></div>
-    <div class="resize-handle bottom"></div>
+    <img id="background" src="" style="width: 300px; height: 200px; position: absolute; top: 0; left: 0; display: none;">
 </div>
 
 <!-- Category Selector -->
@@ -73,7 +21,7 @@
         <!-- Hidden File Input -->
         <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
     </div>
-    
+
     <!-- Background Images will be displayed here -->
     <div id="background-images" style="margin-top: 10px;">
         <!-- Images will be inserted here based on the selected category -->
@@ -152,8 +100,8 @@
                 const img = document.createElement('img');
                 img.src = imageUrl;
                 img.style.cursor = 'pointer';
-                img.style.width = '150px';
-                img.style.height = '100px';
+                img.style.width = '300px';
+                img.style.height = '200px';
                 img.style.marginRight = '10px';
                 img.onclick = function() {
                     changeBackground(imageUrl);
@@ -180,8 +128,8 @@
                 const img = document.createElement('img');
                 img.src = imageUrl;
                 img.style.cursor = 'pointer';
-                img.style.width = '150px';
-                img.style.height = '100px';
+                img.style.width = '300px';
+                img.style.height = '200px';
                 img.style.marginRight = '10px';
                 img.onclick = function() {
                     changeBackground(imageUrl);
@@ -228,11 +176,10 @@
     function restoreCardState() {
         const savedState = localStorage.getItem('cardState');
         if (savedState) {
-            const cardContainer = document.getElementById('card-container');
-            cardContainer.innerHTML = savedState;
-
+            document.getElementById('card-container').innerHTML = savedState;
             // Reapply editable and draggable functionality to the restored elements
-            cardContainer.querySelectorAll('div[contenteditable]').forEach(el => {
+            document.querySelectorAll('#card-container > div').forEach(el => {
+                el.setAttribute('contenteditable', 'true');
                 el.style.cursor = 'move';
                 el.onclick = function() {
                     selectTextField(el);
@@ -243,10 +190,7 @@
     }
 
     // Call the restoreCardState function on page load to continue editing
-    window.onload = function() {
-        restoreCardState();
-        initResizeHandles(); // Initialize resize handles
-    };
+    window.onload = restoreCardState;
 
     let textFieldCount = 0;
     let selectedTextField = null;
@@ -266,16 +210,6 @@
         newTextField.style.border = '1px dashed #000';
         newTextField.style.padding = '5px';
         newTextField.innerText = 'Editable Text';
-
-        // Add event listener to remove placeholder text when user starts typing
-        function removePlaceholderText() {
-            if (newTextField.innerText.trim() === 'Editable Text') {
-                newTextField.innerText = '';
-                newTextField.removeEventListener('input', removePlaceholderText);
-            }
-        }
-        newTextField.addEventListener('input', removePlaceholderText);
-
         newTextField.onclick = function(event) {
             if (!isDragging) {
                 selectTextField(newTextField);
@@ -284,9 +218,6 @@
 
         cardContainer.appendChild(newTextField);
         makeDraggable(newTextField);
-
-        // Automatically select the new text field
-        selectTextField(newTextField);
     }
 
     // Function to select a text field
@@ -325,130 +256,42 @@
         let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
 
         element.onmousedown = dragMouseDown;
-        element.ontouchstart = dragMouseDown;
 
         function dragMouseDown(e) {
             e.preventDefault();
-            isDragging = false;
-            mouseX = e.clientX || e.touches[0].clientX;
-            mouseY = e.clientY || e.touches[0].clientY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
             document.onmouseup = closeDragElement;
             document.onmousemove = elementDrag;
-            document.ontouchend = closeDragElement;
-            document.ontouchmove = elementDrag;
         }
 
         function elementDrag(e) {
             e.preventDefault();
             isDragging = true; // Set the dragging flag when moving the element
-            let clientX = e.clientX || e.touches[0].clientX;
-            let clientY = e.clientY || e.touches[0].clientY;
-            offsetX = mouseX - clientX;
-            offsetY = mouseY - clientY;
-            mouseX = clientX;
-            mouseY = clientY;
-            element.style.top = (element.offsetTop - offsetY) + "px";
-            element.style.left = (element.offsetLeft - offsetX) + "px";
+            offsetX = mouseX - e.clientX;
+            offsetY = mouseY - e.clientY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            let newTop = element.offsetTop - offsetY;
+            let newLeft = element.offsetLeft - offsetX;
+            // Ensure the element stays within the card-container boundaries
+            const container = document.getElementById('card-container');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const elemWidth = element.offsetWidth;
+            const elemHeight = element.offsetHeight;
+            if (newLeft < 0) newLeft = 0;
+            if (newTop < 0) newTop = 0;
+            if (newLeft + elemWidth > containerWidth) newLeft = containerWidth - elemWidth;
+            if (newTop + elemHeight > containerHeight) newTop = containerHeight - elemHeight;
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
         }
 
         function closeDragElement() {
             document.onmouseup = null;
             document.onmousemove = null;
-            document.ontouchend = null;
-            document.ontouchmove = null;
             setTimeout(() => { isDragging = false; }, 100); // Delay resetting the dragging flag
         }
     }
-
-    // Resizing functionality
-    function initResizeHandles() {
-        var cardContainer = document.getElementById('card-container');
-        var aspectRatio = cardContainer.offsetWidth / cardContainer.offsetHeight;
-
-        var resizeHandleBR = document.querySelector('.resize-handle.bottom-right');
-        var resizeHandleBottom = document.querySelector('.resize-handle.bottom');
-
-        resizeHandleBR.addEventListener('mousedown', initResizeBR);
-        resizeHandleBR.addEventListener('touchstart', initResizeBR, { passive: false });
-
-        resizeHandleBottom.addEventListener('mousedown', initResizeBottom);
-        resizeHandleBottom.addEventListener('touchstart', initResizeBottom, { passive: false });
-
-        function initResizeBR(e) {
-            e.preventDefault();
-            document.addEventListener('mousemove', ResizeBR);
-            document.addEventListener('mouseup', stopResizeBR);
-            document.addEventListener('touchmove', ResizeBR, { passive: false });
-            document.addEventListener('touchend', stopResizeBR);
-        }
-
-        function initResizeBottom(e) {
-            e.preventDefault();
-            document.addEventListener('mousemove', ResizeBottom);
-            document.addEventListener('mouseup', stopResizeBottom);
-            document.addEventListener('touchmove', ResizeBottom, { passive: false });
-            document.addEventListener('touchend', stopResizeBottom);
-        }
-
-        function ResizeBR(e) {
-            e.preventDefault();
-            var clientX = e.clientX || e.touches[0].clientX;
-            var clientY = e.clientY || e.touches[0].clientY;
-
-            var rect = cardContainer.getBoundingClientRect();
-            var offsetX = clientX - rect.left;
-            var newWidth = offsetX;
-            var newHeight = newWidth / aspectRatio;
-
-            if (newWidth >= 100 && newHeight >= 100) { // Minimum size constraints
-                cardContainer.style.width = newWidth + 'px';
-                cardContainer.style.height = newHeight + 'px';
-
-                // Adjust the background image size
-                var backgroundImage = document.getElementById('background');
-                backgroundImage.style.width = '100%';
-                backgroundImage.style.height = '100%';
-
-                // Recalculate aspect ratio
-                aspectRatio = newWidth / newHeight;
-            }
-        }
-
-        function ResizeBottom(e) {
-            e.preventDefault();
-            var clientY = e.clientY || e.touches[0].clientY;
-
-            var rect = cardContainer.getBoundingClientRect();
-            var offsetY = clientY - rect.top;
-            var newHeight = offsetY;
-
-            if (newHeight >= 100) { // Minimum height constraint
-                cardContainer.style.height = newHeight + 'px';
-
-                // Adjust the background image height
-                var backgroundImage = document.getElementById('background');
-                backgroundImage.style.height = '100%';
-
-                // Recalculate aspect ratio
-                aspectRatio = cardContainer.offsetWidth / newHeight;
-            }
-        }
-
-        function stopResizeBR() {
-            document.removeEventListener('mousemove', ResizeBR);
-            document.removeEventListener('mouseup', stopResizeBR);
-            document.removeEventListener('touchmove', ResizeBR);
-            document.removeEventListener('touchend', stopResizeBR);
-        }
-
-        function stopResizeBottom() {
-            document.removeEventListener('mousemove', ResizeBottom);
-            document.removeEventListener('mouseup', stopResizeBottom);
-            document.removeEventListener('touchmove', ResizeBottom);
-            document.removeEventListener('touchend', stopResizeBottom);
-        }
-    }
 </script>
-
-</body>
-</html>
