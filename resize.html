@@ -1,454 +1,530 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Customized Card Creator</title>
     <style>
+        /* Styles for mobile responsiveness and resize handles */
         #card-container {
             width: 300px;
             height: 200px;
             position: relative;
             border: 1px solid #000;
             background-color: grey;
-            overflow: hidden;
-            touch-action: none; /* Prevent touch gestures like pinch-to-zoom */
+            max-width: 100%;
+            max-height: 100%;
+            touch-action: none; /* Prevent default touch actions for better touch handling */
+            user-select: none; /* Prevent text selection during drag */
+            overflow: hidden; /* Hide overflow during resizing */
         }
-
+        /* Style for the background image */
         #background {
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
             display: none;
-            width: 100%;
-            height: 100%;
+            object-fit: cover;
         }
-
-        .resize-handle {
+        /* Style for the resize handles */
+        #resize-handle-height,
+        #resize-handle-aspect {
             position: absolute;
-            background: rgba(0, 0, 0, 0.2); /* Semi-transparent for visibility */
             z-index: 10;
+            background: rgba(0, 0, 0, 0.1);
         }
-
-        .resize-handle.bottom-right {
-            width: 20px;
-            height: 20px;
-            right: 0;
-            bottom: 0;
-            cursor: nwse-resize;
-        }
-
-        .resize-handle.bottom {
-            width: 100%;
-            height: 10px;
+        #resize-handle-height {
             bottom: 0;
             left: 0;
+            width: 100%;
+            height: 10px;
             cursor: ns-resize;
+        }
+        #resize-handle-aspect {
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            cursor: nwse-resize;
         }
     </style>
 </head>
 <body>
+    <!-- Card Container with Resize Handles -->
+    <div id="card-container">
+        <!-- Background Image (Initially hidden) -->
+        <img id="background" src="" alt="Background Image">
+        <!-- Resize Handle for Height -->
+        <div id="resize-handle-height"></div>
+        <!-- Resize Handle for Aspect Ratio -->
+        <div id="resize-handle-aspect"></div>
+    </div>
 
-<div id="card-container">
-    <!-- Background Image (Initially hidden) -->
-    <img id="background" src="" alt="Background Image">
+    <!-- Category Selector -->
+    <div id="background-selector" style="margin-left: 10px;">
+        <h3>Select a Background</h3>
+        <div style="display: flex; align-items: center;">
+            <label for="category-select">Category:</label>
+            <select id="category-select" onchange="updateBackgrounds()" style="margin-right: 10px;">
+                <option value="">--Select Category--</option>
+                <option value="crypto-king">Crypto-King</option>
+                <option value="crypto-queen">Crypto-Queen</option>
+                <option value="birthday">Birthday</option>
+                <option value="christmas">Christmas</option>
+                <option value="upload-own-picture">Upload Own Picture</option>
+            </select>
+            <!-- Upload Own Picture Button -->
+            <button id="upload-button" onclick="triggerFileInput()" style="display: none;">Upload Own Picture</button>
+            <!-- Hidden File Input -->
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+        </div>
 
-    <!-- Resize Handles -->
-    <div class="resize-handle bottom-right"></div>
-    <div class="resize-handle bottom"></div>
-</div>
+        <!-- Background Images will be displayed here -->
+        <div id="background-images" style="margin-top: 10px;">
+            <!-- Images will be inserted here based on the selected category -->
+        </div>
+    </div>
 
-<!-- Category Selector -->
-<div id="background-selector" style="margin-left: 10px;">
-    <h3>Select a Background</h3>
-    <div style="display: flex; align-items: center;">
-        <label for="category-select">Category:</label>
-        <select id="category-select" onchange="updateBackgrounds()" style="margin-right: 10px;">
-            <option value="">--Select Category--</option>
-            <option value="crypto-king">Crypto-King</option>
-            <option value="crypto-queen">Crypto-Queen</option>
-            <option value="birthday">Birthday</option>
-            <option value="christmas">Christmas</option>
-            <option value="upload-own-picture">Upload Own Picture</option>
+    <!-- Add/Remove Text Buttons -->
+    <button onclick="addTextField()" style="margin-top: 20px;">Add Text Field</button>
+    <button onclick="removeSelectedTextField()" style="margin-top: 20px;">Remove Selected Text Field</button>
+
+    <!-- Font, Size, and Color Selectors -->
+    <div style="margin-top: 10px;">
+        <label for="font-select">Font:</label>
+        <select id="font-select" onchange="updateSelectedTextStyle()">
+            <option style="font-family: Arial;" value="Arial">Arial</option>
+            <option style="font-family: 'Times New Roman';" value="Times New Roman">Times New Roman</option>
+            <option style="font-family: 'Courier New';" value="Courier New">Courier New</option>
+            <option style="font-family: Georgia;" value="Georgia">Georgia</option>
+            <option style="font-family: Verdana;" value="Verdana">Verdana</option>
+            <option style="font-family: Tahoma;" value="Tahoma">Tahoma</option>
+            <option style="font-family: 'Trebuchet MS';" value="Trebuchet MS">Trebuchet MS</option>
+            <option style="font-family: 'Comic Sans MS';" value="Comic Sans MS">Comic Sans MS</option>
+            <option style="font-family: Impact;" value="Impact">Impact</option>
+            <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
         </select>
-        <!-- Upload Own Picture Button -->
-        <button id="upload-button" onclick="triggerFileInput()" style="display: none;">Upload Own Picture</button>
-        <!-- Hidden File Input -->
-        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+
+        <label for="font-size">Size:</label>
+        <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
+
+        <label for="font-color">Color:</label>
+        <input type="color" id="font-color" value="#000000" onchange="updateSelectedTextStyle()">
     </div>
-    
-    <!-- Background Images will be displayed here -->
-    <div id="background-images" style="margin-top: 10px;">
-        <!-- Images will be inserted here based on the selected category -->
-    </div>
-</div>
 
-<!-- Add/Remove Text Buttons -->
-<button onclick="addTextField()" style="margin-top: 20px;">Add Text Field</button>
-<button onclick="removeSelectedTextField()" style="margin-top: 20px;">Remove Selected Text Field</button>
+    <!-- Review Order Button -->
+    <button onclick="reviewOrder()" style="margin-top: 20px;">Review Order</button>
 
-<!-- Font, Size, and Color Selectors -->
-<div style="margin-top: 10px;">
-    <label for="font-select">Font:</label>
-    <select id="font-select" onchange="updateSelectedTextStyle()">
-        <option style="font-family: Arial;" value="Arial">Arial</option>
-        <option style="font-family: 'Times New Roman';" value="Times New Roman">Times New Roman</option>
-        <option style="font-family: 'Courier New';" value="Courier New">Courier New</option>
-        <option style="font-family: Georgia;" value="Georgia">Georgia</option>
-        <option style="font-family: Verdana;" value="Verdana">Verdana</option>
-        <option style="font-family: Tahoma;" value="Tahoma">Tahoma</option>
-        <option style="font-family: 'Trebuchet MS';" value="Trebuchet MS">Trebuchet MS</option>
-        <option style="font-family: 'Comic Sans MS';" value="Comic Sans MS">Comic Sans MS</option>
-        <option style="font-family: Impact;" value="Impact">Impact</option>
-        <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
-    </select>
-
-    <label for="font-size">Size:</label>
-    <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
-
-    <label for="font-color">Color:</label>
-    <input type="color" id="font-color" value="#000000" onchange="updateSelectedTextStyle()">
-</div>
-
-<!-- Review Order Button -->
-<button onclick="reviewOrder()" style="margin-top: 20px;">Review Order</button>
-
-<script>
-    // Data: category backgrounds
-    const categoryBackgrounds = {
-        'crypto-king': [
-            'https://via.placeholder.com/300x200?text=Crypto-King+1',
-            'https://via.placeholder.com/300x200?text=Crypto-King+2',
-            'https://via.placeholder.com/300x200?text=Crypto-King+3',
-        ],
-        'crypto-queen': [
-            'https://via.placeholder.com/300x200?text=Crypto-Queen+1',
-            'https://via.placeholder.com/300x200?text=Crypto-Queen+2',
-            'https://via.placeholder.com/300x200?text=Crypto-Queen+3',
-        ],
-        'birthday': [
-            'https://via.placeholder.com/300x200?text=Birthday+1',
-            'https://via.placeholder.com/300x200?text=Birthday+2',
-            'https://via.placeholder.com/300x200?text=Birthday+3',
-        ],
-        'christmas': [
-            'https://via.placeholder.com/300x200?text=Christmas+1',
-            'https://via.placeholder.com/300x200?text=Christmas+2',
-            'https://via.placeholder.com/300x200?text=Christmas+3',
-        ],
-    };
-
-    // Function to update background images based on selected category
-    function updateBackgrounds() {
-        const category = document.getElementById('category-select').value;
-        const backgroundImagesDiv = document.getElementById('background-images');
-        const uploadButton = document.getElementById('upload-button');
-
-        backgroundImagesDiv.innerHTML = ''; // Clear previous images
-        uploadButton.style.display = 'none'; // Hide the upload button by default
-
-        if (category === 'upload-own-picture') {
-            // Show the upload button
-            uploadButton.style.display = 'block';
-        } else if (category && categoryBackgrounds[category]) {
-            categoryBackgrounds[category].forEach(imageUrl => {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.style.cursor = 'pointer';
-                img.style.width = '150px';
-                img.style.height = '100px';
-                img.style.marginRight = '10px';
-                img.onclick = function() {
-                    changeBackground(imageUrl);
-                };
-                backgroundImagesDiv.appendChild(img);
-            });
-        }
-    }
-
-    // Function to trigger file input when upload button is clicked
-    function triggerFileInput() {
-        document.getElementById('file-input').click();
-    }
-
-    // Function to handle the file upload
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imageUrl = e.target.result;
-                // Display the uploaded image in the background-images div
-                const backgroundImagesDiv = document.getElementById('background-images');
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.style.cursor = 'pointer';
-                img.style.width = '150px';
-                img.style.height = '100px';
-                img.style.marginRight = '10px';
-                img.onclick = function() {
-                    changeBackground(imageUrl);
-                };
-                backgroundImagesDiv.appendChild(img);
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // Function to change the background
-    function changeBackground(imageUrl) {
-        var backgroundImage = document.getElementById('background');
-        backgroundImage.src = imageUrl;
-        backgroundImage.style.display = 'block'; // Show the background when clicked
-    }
-
-    // Function to handle the review order and save the card content to localStorage
-    function reviewOrder() {
-        saveCardState(); // Save the current state of the card before navigating
-
-        // Clone the card-container to remove edit options like contenteditable and dashed borders
-        const cardContainer = document.getElementById('card-container');
-        const clonedCard = cardContainer.cloneNode(true);
-        clonedCard.querySelectorAll('[contenteditable]').forEach(el => {
-            el.removeAttribute('contenteditable');
-            el.style.border = 'none'; // Remove dashed borders for a clean look
-        });
-
-        // Store the cleaned-up card HTML in localStorage
-        localStorage.setItem('cardHTML', clonedCard.innerHTML);
-
-        // Redirect to the review page
-        window.location.href = '/review';
-    }
-
-    // Function to save the current state of the card for future editing
-    function saveCardState() {
-        const cardContainer = document.getElementById('card-container');
-        localStorage.setItem('cardState', cardContainer.innerHTML); // Save the full HTML of the card container
-    }
-
-    // Function to restore the saved card state (if exists) and reapply editable and draggable functionality
-    function restoreCardState() {
-        const savedState = localStorage.getItem('cardState');
-        if (savedState) {
-            const cardContainer = document.getElementById('card-container');
-            cardContainer.innerHTML = savedState;
-
-            // Reapply editable and draggable functionality to the restored elements
-            cardContainer.querySelectorAll('div[contenteditable]').forEach(el => {
-                el.style.cursor = 'move';
-                el.onclick = function() {
-                    selectTextField(el);
-                };
-                makeDraggable(el);
-            });
-        }
-    }
-
-    // Call the restoreCardState function on page load to continue editing
-    window.onload = function() {
-        restoreCardState();
-        initResizeHandles(); // Initialize resize handles
-    };
-
-    let textFieldCount = 0;
-    let selectedTextField = null;
-    let isDragging = false; // Flag to track if dragging
-
-    // Function to add a new text field
-    function addTextField() {
-        textFieldCount++;
-        const cardContainer = document.getElementById('card-container');
-        const newTextField = document.createElement('div');
-
-        newTextField.setAttribute('contenteditable', 'true');
-        newTextField.style.position = 'absolute';
-        newTextField.style.top = (textFieldCount * 20) + 'px';
-        newTextField.style.left = (textFieldCount * 20) + 'px';
-        newTextField.style.cursor = 'move';
-        newTextField.style.border = '1px dashed #000';
-        newTextField.style.padding = '5px';
-        newTextField.innerText = 'Editable Text';
-
-        // Add event listener to remove placeholder text when user starts typing
-        function removePlaceholderText() {
-            if (newTextField.innerText.trim() === 'Editable Text') {
-                newTextField.innerText = '';
-                newTextField.removeEventListener('input', removePlaceholderText);
-            }
-        }
-        newTextField.addEventListener('input', removePlaceholderText);
-
-        newTextField.onclick = function(event) {
-            if (!isDragging) {
-                selectTextField(newTextField);
-            }
+    <script>
+        // Data: category backgrounds
+        const categoryBackgrounds = {
+            'crypto-king': [
+                'https://via.placeholder.com/300x200?text=Crypto-King+1',
+                'https://via.placeholder.com/300x200?text=Crypto-King+2',
+                'https://via.placeholder.com/300x200?text=Crypto-King+3',
+            ],
+            'crypto-queen': [
+                'https://via.placeholder.com/300x200?text=Crypto-Queen+1',
+                'https://via.placeholder.com/300x200?text=Crypto-Queen+2',
+                'https://via.placeholder.com/300x200?text=Crypto-Queen+3',
+            ],
+            'birthday': [
+                'https://via.placeholder.com/300x200?text=Birthday+1',
+                'https://via.placeholder.com/300x200?text=Birthday+2',
+                'https://via.placeholder.com/300x200?text=Birthday+3',
+            ],
+            'christmas': [
+                'https://via.placeholder.com/300x200?text=Christmas+1',
+                'https://via.placeholder.com/300x200?text=Christmas+2',
+                'https://via.placeholder.com/300x200?text=Christmas+3',
+            ],
         };
 
-        cardContainer.appendChild(newTextField);
-        makeDraggable(newTextField);
+        // Function to update background images based on selected category
+        function updateBackgrounds() {
+            const category = document.getElementById('category-select').value;
+            const backgroundImagesDiv = document.getElementById('background-images');
+            const uploadButton = document.getElementById('upload-button');
 
-        // Automatically select the new text field
-        selectTextField(newTextField);
-    }
+            backgroundImagesDiv.innerHTML = ''; // Clear previous images
+            uploadButton.style.display = 'none'; // Hide the upload button by default
 
-    // Function to select a text field
-    function selectTextField(field) {
-        if (selectedTextField) {
-            selectedTextField.style.border = '1px dashed #000'; // Unselect current field
-        }
-        selectedTextField = field;
-        selectedTextField.style.border = '2px solid red'; // Highlight selected field
-        selectedTextField.focus(); // Focus on the text field for editing
-    }
-
-    // Function to remove the selected text field
-    function removeSelectedTextField() {
-        if (selectedTextField) {
-            selectedTextField.remove();
-            selectedTextField = null;
-        }
-    }
-
-    // Update font, size, and color of the selected text field
-    function updateSelectedTextStyle() {
-        if (!selectedTextField) return;
-
-        const font = document.getElementById('font-select').value;
-        const size = document.getElementById('font-size').value;
-        const color = document.getElementById('font-color').value;
-
-        selectedTextField.style.fontFamily = font;
-        selectedTextField.style.fontSize = size + 'px';
-        selectedTextField.style.color = color;
-    }
-
-    // Make text field draggable
-    function makeDraggable(element) {
-        let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
-
-        element.onmousedown = dragMouseDown;
-        element.ontouchstart = dragMouseDown;
-
-        function dragMouseDown(e) {
-            e.preventDefault();
-            isDragging = false;
-            mouseX = e.clientX || e.touches[0].clientX;
-            mouseY = e.clientY || e.touches[0].clientY;
-            document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
-            document.ontouchend = closeDragElement;
-            document.ontouchmove = elementDrag;
-        }
-
-        function elementDrag(e) {
-            e.preventDefault();
-            isDragging = true; // Set the dragging flag when moving the element
-            let clientX = e.clientX || e.touches[0].clientX;
-            let clientY = e.clientY || e.touches[0].clientY;
-            offsetX = mouseX - clientX;
-            offsetY = mouseY - clientY;
-            mouseX = clientX;
-            mouseY = clientY;
-            element.style.top = (element.offsetTop - offsetY) + "px";
-            element.style.left = (element.offsetLeft - offsetX) + "px";
-        }
-
-        function closeDragElement() {
-            document.onmouseup = null;
-            document.onmousemove = null;
-            document.ontouchend = null;
-            document.ontouchmove = null;
-            setTimeout(() => { isDragging = false; }, 100); // Delay resetting the dragging flag
-        }
-    }
-
-    // Resizing functionality
-    function initResizeHandles() {
-        var cardContainer = document.getElementById('card-container');
-        var aspectRatio = cardContainer.offsetWidth / cardContainer.offsetHeight;
-
-        var resizeHandleBR = document.querySelector('.resize-handle.bottom-right');
-        var resizeHandleBottom = document.querySelector('.resize-handle.bottom');
-
-        resizeHandleBR.addEventListener('mousedown', initResizeBR);
-        resizeHandleBR.addEventListener('touchstart', initResizeBR, { passive: false });
-
-        resizeHandleBottom.addEventListener('mousedown', initResizeBottom);
-        resizeHandleBottom.addEventListener('touchstart', initResizeBottom, { passive: false });
-
-        function initResizeBR(e) {
-            e.preventDefault();
-            document.addEventListener('mousemove', ResizeBR);
-            document.addEventListener('mouseup', stopResizeBR);
-            document.addEventListener('touchmove', ResizeBR, { passive: false });
-            document.addEventListener('touchend', stopResizeBR);
-        }
-
-        function initResizeBottom(e) {
-            e.preventDefault();
-            document.addEventListener('mousemove', ResizeBottom);
-            document.addEventListener('mouseup', stopResizeBottom);
-            document.addEventListener('touchmove', ResizeBottom, { passive: false });
-            document.addEventListener('touchend', stopResizeBottom);
-        }
-
-        function ResizeBR(e) {
-            e.preventDefault();
-            var clientX = e.clientX || e.touches[0].clientX;
-            var clientY = e.clientY || e.touches[0].clientY;
-
-            var rect = cardContainer.getBoundingClientRect();
-            var offsetX = clientX - rect.left;
-            var newWidth = offsetX;
-            var newHeight = newWidth / aspectRatio;
-
-            if (newWidth >= 100 && newHeight >= 100) { // Minimum size constraints
-                cardContainer.style.width = newWidth + 'px';
-                cardContainer.style.height = newHeight + 'px';
-
-                // Adjust the background image size
-                var backgroundImage = document.getElementById('background');
-                backgroundImage.style.width = '100%';
-                backgroundImage.style.height = '100%';
-
-                // Recalculate aspect ratio
-                aspectRatio = newWidth / newHeight;
+            if (category === 'upload-own-picture') {
+                // Show the upload button
+                uploadButton.style.display = 'block';
+            } else if (category && categoryBackgrounds[category]) {
+                categoryBackgrounds[category].forEach(imageUrl => {
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.style.cursor = 'pointer';
+                    img.style.width = '150px';
+                    img.style.height = '100px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                });
             }
         }
 
-        function ResizeBottom(e) {
-            e.preventDefault();
-            var clientY = e.clientY || e.touches[0].clientY;
+        // Function to trigger file input when upload button is clicked
+        function triggerFileInput() {
+            document.getElementById('file-input').click();
+        }
 
-            var rect = cardContainer.getBoundingClientRect();
-            var offsetY = clientY - rect.top;
-            var newHeight = offsetY;
-
-            if (newHeight >= 100) { // Minimum height constraint
-                cardContainer.style.height = newHeight + 'px';
-
-                // Adjust the background image height
-                var backgroundImage = document.getElementById('background');
-                backgroundImage.style.height = '100%';
-
-                // Recalculate aspect ratio
-                aspectRatio = cardContainer.offsetWidth / newHeight;
+        // Function to handle the file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    // Display the uploaded image in the background-images div
+                    const backgroundImagesDiv = document.getElementById('background-images');
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.style.cursor = 'pointer';
+                    img.style.width = '150px';
+                    img.style.height = '100px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                }
+                reader.readAsDataURL(file);
             }
         }
 
-        function stopResizeBR() {
-            document.removeEventListener('mousemove', ResizeBR);
-            document.removeEventListener('mouseup', stopResizeBR);
-            document.removeEventListener('touchmove', ResizeBR);
-            document.removeEventListener('touchend', stopResizeBR);
+        // Function to change the background
+        function changeBackground(imageUrl) {
+            var backgroundImage = document.getElementById('background');
+            backgroundImage.src = imageUrl;
+            backgroundImage.style.display = 'block'; // Show the background when clicked
         }
 
-        function stopResizeBottom() {
-            document.removeEventListener('mousemove', ResizeBottom);
-            document.removeEventListener('mouseup', stopResizeBottom);
-            document.removeEventListener('touchmove', ResizeBottom);
-            document.removeEventListener('touchend', stopResizeBottom);
-        }
-    }
-</script>
+        // Function to handle the review order and save the card content to localStorage
+        function reviewOrder() {
+            saveCardState(); // Save the current state of the card before navigating
 
+            // Clone the card-container to remove edit options like contenteditable and borders
+            const cardContainer = document.getElementById('card-container');
+            const clonedCard = cardContainer.cloneNode(true);
+            clonedCard.querySelectorAll('[contenteditable]').forEach(el => {
+                el.removeAttribute('contenteditable');
+                el.style.border = 'none'; // Remove borders for a clean look
+            });
+
+            // Store the cleaned-up card HTML in localStorage
+            localStorage.setItem('cardHTML', clonedCard.innerHTML);
+
+            // Redirect to the review page (You need to implement the review page)
+            window.location.href = '/review';
+        }
+
+        // Function to save the current state of the card for future editing
+        function saveCardState() {
+            const cardContainer = document.getElementById('card-container');
+            localStorage.setItem('cardState', cardContainer.innerHTML); // Save the full HTML of the card container
+        }
+
+        // Function to restore the saved card state (if exists) and reapply editable and draggable functionality
+        function restoreCardState() {
+            const savedState = localStorage.getItem('cardState');
+            if (savedState) {
+                const cardContainer = document.getElementById('card-container');
+                cardContainer.innerHTML = savedState;
+
+                // Reapply editable and draggable functionality to the restored elements
+                cardContainer.querySelectorAll('div[contenteditable]').forEach(el => {
+                    el.style.cursor = 'move';
+                    el.onclick = function(event) {
+                        if (!isDragging) {
+                            selectTextField(el);
+                        }
+                    };
+                    makeDraggable(el);
+                });
+            }
+        }
+
+        // Call the restoreCardState function on page load to continue editing
+        window.onload = function() {
+            restoreCardState();
+            // Initialize the resize handlers
+            initializeResizeHandlers();
+        };
+
+        let textFieldCount = 0;
+        let selectedTextField = null;
+        let isDragging = false; // Flag to track if dragging
+
+        // Function to add a new text field
+        function addTextField() {
+            textFieldCount++;
+            const cardContainer = document.getElementById('card-container');
+            const newTextField = document.createElement('div');
+
+            newTextField.setAttribute('contenteditable', 'true');
+            newTextField.style.position = 'absolute';
+            newTextField.style.top = (textFieldCount * 20) + 'px';
+            newTextField.style.left = (textFieldCount * 20) + 'px';
+            newTextField.style.cursor = 'move';
+            newTextField.style.border = '1px dashed #000';
+            newTextField.style.padding = '5px';
+            newTextField.style.backgroundColor = 'rgba(255,255,255,0.7)';
+            newTextField.innerText = 'Editable Text';
+
+            // Add event listener to remove placeholder text when user starts typing
+            function removePlaceholderText() {
+                if (newTextField.innerText.trim() === 'Editable Text') {
+                    newTextField.innerText = '';
+                    newTextField.removeEventListener('input', removePlaceholderText);
+                }
+            }
+            newTextField.addEventListener('input', removePlaceholderText);
+
+            newTextField.onclick = function(event) {
+                if (!isDragging) {
+                    selectTextField(newTextField);
+                }
+            };
+
+            cardContainer.appendChild(newTextField);
+            makeDraggable(newTextField);
+
+            // Automatically select the new text field
+            selectTextField(newTextField);
+        }
+
+        // Function to select a text field
+        function selectTextField(field) {
+            if (selectedTextField) {
+                selectedTextField.style.border = '1px dashed #000'; // Unselect current field
+            }
+            selectedTextField = field;
+            selectedTextField.style.border = '2px solid red'; // Highlight selected field
+            selectedTextField.focus(); // Focus on the text field for editing
+        }
+
+        // Function to remove the selected text field
+        function removeSelectedTextField() {
+            if (selectedTextField) {
+                selectedTextField.remove();
+                selectedTextField = null;
+            }
+        }
+
+        // Update font, size, and color of the selected text field
+        function updateSelectedTextStyle() {
+            if (!selectedTextField) return;
+
+            const font = document.getElementById('font-select').value;
+            const size = document.getElementById('font-size').value;
+            const color = document.getElementById('font-color').value;
+
+            selectedTextField.style.fontFamily = font;
+            selectedTextField.style.fontSize = size + 'px';
+            selectedTextField.style.color = color;
+        }
+
+        // Make text field draggable (with touch support)
+        function makeDraggable(element) {
+            let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
+
+            element.addEventListener('mousedown', dragMouseDown);
+            element.addEventListener('touchstart', dragTouchStart);
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                isDragging = false;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                document.addEventListener('mousemove', elementDragMouse);
+                document.addEventListener('mouseup', closeDragElementMouse);
+            }
+
+            function elementDragMouse(e) {
+                e.preventDefault();
+                isDragging = true;
+                offsetX = mouseX - e.clientX;
+                offsetY = mouseY - e.clientY;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
+            }
+
+            function closeDragElementMouse() {
+                document.removeEventListener('mousemove', elementDragMouse);
+                document.removeEventListener('mouseup', closeDragElementMouse);
+                setTimeout(() => { isDragging = false; }, 100);
+            }
+
+            function dragTouchStart(e) {
+                e.preventDefault();
+                isDragging = false;
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                document.addEventListener('touchmove', elementDragTouch);
+                document.addEventListener('touchend', closeDragElementTouch);
+            }
+
+            function elementDragTouch(e) {
+                e.preventDefault();
+                isDragging = true;
+                offsetX = mouseX - e.touches[0].clientX;
+                offsetY = mouseY - e.touches[0].clientY;
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
+            }
+
+            function closeDragElementTouch() {
+                document.removeEventListener('touchmove', elementDragTouch);
+                document.removeEventListener('touchend', closeDragElementTouch);
+                setTimeout(() => { isDragging = false; }, 100);
+            }
+        }
+
+        // Initialize Resize Handlers
+        function initializeResizeHandlers() {
+            const cardContainer = document.getElementById('card-container');
+            const resizeHandleHeight = document.getElementById('resize-handle-height');
+            const resizeHandleAspect = document.getElementById('resize-handle-aspect');
+
+            let isResizingHeight = false;
+            let isResizingAspect = false;
+            let startHeight = 0;
+            let startWidth = 0;
+            let startY = 0;
+            let startX = 0;
+            let aspectRatio = cardContainer.offsetWidth / cardContainer.offsetHeight;
+
+            // Mouse events for resizing height
+            resizeHandleHeight.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                isResizingHeight = true;
+                startY = e.clientY;
+                startHeight = cardContainer.offsetHeight;
+                document.addEventListener('mousemove', resizeHeightMouse);
+                document.addEventListener('mouseup', stopResizeHeightMouse);
+            });
+
+            // Touch events for resizing height
+            resizeHandleHeight.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                isResizingHeight = true;
+                startY = e.touches[0].clientY;
+                startHeight = cardContainer.offsetHeight;
+                document.addEventListener('touchmove', resizeHeightTouch);
+                document.addEventListener('touchend', stopResizeHeightTouch);
+            });
+
+            function resizeHeightMouse(e) {
+                if (!isResizingHeight) return;
+                let newHeight = startHeight + (e.clientY - startY);
+                if (newHeight > 100) { // Minimum height
+                    cardContainer.style.height = newHeight + 'px';
+                    // Update background image height
+                    const backgroundImage = document.getElementById('background');
+                    backgroundImage.style.height = '100%';
+                }
+            }
+
+            function stopResizeHeightMouse() {
+                isResizingHeight = false;
+                document.removeEventListener('mousemove', resizeHeightMouse);
+                document.removeEventListener('mouseup', stopResizeHeightMouse);
+            }
+
+            function resizeHeightTouch(e) {
+                if (!isResizingHeight) return;
+                let newHeight = startHeight + (e.touches[0].clientY - startY);
+                if (newHeight > 100) { // Minimum height
+                    cardContainer.style.height = newHeight + 'px';
+                    // Update background image height
+                    const backgroundImage = document.getElementById('background');
+                    backgroundImage.style.height = '100%';
+                }
+            }
+
+            function stopResizeHeightTouch() {
+                isResizingHeight = false;
+                document.removeEventListener('touchmove', resizeHeightTouch);
+                document.removeEventListener('touchend', stopResizeHeightTouch);
+            }
+
+            // Mouse events for resizing with aspect ratio
+            resizeHandleAspect.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                isResizingAspect = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = cardContainer.offsetWidth;
+                startHeight = cardContainer.offsetHeight;
+                document.addEventListener('mousemove', resizeAspectMouse);
+                document.addEventListener('mouseup', stopResizeAspectMouse);
+            });
+
+            // Touch events for resizing with aspect ratio
+            resizeHandleAspect.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                isResizingAspect = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                startWidth = cardContainer.offsetWidth;
+                startHeight = cardContainer.offsetHeight;
+                document.addEventListener('touchmove', resizeAspectTouch);
+                document.addEventListener('touchend', stopResizeAspectTouch);
+            });
+
+            function resizeAspectMouse(e) {
+                if (!isResizingAspect) return;
+                let dx = e.clientX - startX;
+                let newWidth = startWidth + dx;
+                let newHeight = newWidth / aspectRatio;
+                if (newWidth > 100 && newHeight > 100) { // Minimum size
+                    cardContainer.style.width = newWidth + 'px';
+                    cardContainer.style.height = newHeight + 'px';
+                    // Update background image size
+                    const backgroundImage = document.getElementById('background');
+                    backgroundImage.style.width = '100%';
+                    backgroundImage.style.height = '100%';
+                }
+            }
+
+            function stopResizeAspectMouse() {
+                isResizingAspect = false;
+                document.removeEventListener('mousemove', resizeAspectMouse);
+                document.removeEventListener('mouseup', stopResizeAspectMouse);
+            }
+
+            function resizeAspectTouch(e) {
+                if (!isResizingAspect) return;
+                let dx = e.touches[0].clientX - startX;
+                let newWidth = startWidth + dx;
+                let newHeight = newWidth / aspectRatio;
+                if (newWidth > 100 && newHeight > 100) { // Minimum size
+                    cardContainer.style.width = newWidth + 'px';
+                    cardContainer.style.height = newHeight + 'px';
+                    // Update background image size
+                    const backgroundImage = document.getElementById('background');
+                    backgroundImage.style.width = '100%';
+                    backgroundImage.style.height = '100%';
+                }
+            }
+
+            function stopResizeAspectTouch() {
+                isResizingAspect = false;
+                document.removeEventListener('touchmove', resizeAspectTouch);
+                document.removeEventListener('touchend', stopResizeAspectTouch);
+            }
+        }
+    </script>
 </body>
 </html>
