@@ -3,23 +3,20 @@
 <head>
     <title>Customized Card Creator</title>
     <style>
-        /* Additional styles for mobile responsiveness */
+        /* Styles for mobile responsiveness and resize handles */
         #card-container {
             max-width: 100%;
             max-height: 100%;
             touch-action: none; /* Prevent default touch actions for better touch handling */
             user-select: none; /* Prevent text selection during drag */
-        }
-        /* Hide the resize handles when not hovering over the card container */
-        #card-container:hover #resize-handle-height,
-        #card-container:hover #resize-handle-aspect {
-            background: rgba(0, 0, 0, 0.1);
+            overflow: hidden; /* Hide overflow during resizing */
         }
         /* Style for the resize handles */
         #resize-handle-height,
         #resize-handle-aspect {
             position: absolute;
             z-index: 10;
+            background: rgba(0, 0, 0, 0.1);
         }
         #resize-handle-height {
             bottom: 0;
@@ -82,7 +79,15 @@
         <label for="font-select">Font:</label>
         <select id="font-select" onchange="updateSelectedTextStyle()">
             <option style="font-family: Arial;" value="Arial">Arial</option>
-            <!-- Add more font options as needed -->
+            <option style="font-family: 'Times New Roman';" value="Times New Roman">Times New Roman</option>
+            <option style="font-family: 'Courier New';" value="Courier New">Courier New</option>
+            <option style="font-family: Georgia;" value="Georgia">Georgia</option>
+            <option style="font-family: Verdana;" value="Verdana">Verdana</option>
+            <option style="font-family: Tahoma;" value="Tahoma">Tahoma</option>
+            <option style="font-family: 'Trebuchet MS';" value="Trebuchet MS">Trebuchet MS</option>
+            <option style="font-family: 'Comic Sans MS';" value="Comic Sans MS">Comic Sans MS</option>
+            <option style="font-family: Impact;" value="Impact">Impact</option>
+            <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
         </select>
 
         <label for="font-size">Size:</label>
@@ -103,42 +108,131 @@
                 'https://via.placeholder.com/300x400?text=Crypto-King+2',
                 'https://via.placeholder.com/300x400?text=Crypto-King+3',
             ],
-            // Add other categories similarly
+            'crypto-queen': [
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+1',
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+2',
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+3',
+            ],
+            'birthday': [
+                'https://via.placeholder.com/300x400?text=Birthday+1',
+                'https://via.placeholder.com/300x400?text=Birthday+2',
+                'https://via.placeholder.com/300x400?text=Birthday+3',
+            ],
+            'christmas': [
+                'https://via.placeholder.com/300x400?text=Christmas+1',
+                'https://via.placeholder.com/300x400?text=Christmas+2',
+                'https://via.placeholder.com/300x400?text=Christmas+3',
+            ],
         };
 
         // Function to update background images based on selected category
         function updateBackgrounds() {
-            // ... existing code ...
+            const category = document.getElementById('category-select').value;
+            const backgroundImagesDiv = document.getElementById('background-images');
+            const uploadButton = document.getElementById('upload-button');
+
+            backgroundImagesDiv.innerHTML = ''; // Clear previous images
+            uploadButton.style.display = 'none'; // Hide the upload button by default
+
+            if (category === 'upload-own-picture') {
+                // Show the upload button
+                uploadButton.style.display = 'block';
+            } else if (category && categoryBackgrounds[category]) {
+                categoryBackgrounds[category].forEach(imageUrl => {
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.style.cursor = 'pointer';
+                    img.style.width = '150px';
+                    img.style.height = '200px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                });
+            }
         }
 
         // Function to trigger file input when upload button is clicked
         function triggerFileInput() {
-            // ... existing code ...
+            document.getElementById('file-input').click();
         }
 
         // Function to handle the file upload
         function handleFileUpload(event) {
-            // ... existing code ...
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    // Display the uploaded image in the background-images div
+                    const backgroundImagesDiv = document.getElementById('background-images');
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.style.cursor = 'pointer';
+                    img.style.width = '150px';
+                    img.style.height = '200px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
         }
 
         // Function to change the background
         function changeBackground(imageUrl) {
-            // ... existing code ...
+            var backgroundImage = document.getElementById('background');
+            backgroundImage.src = imageUrl;
+            backgroundImage.style.display = 'block'; // Show the background when clicked
         }
 
         // Function to handle the review order and save the card content to localStorage
         function reviewOrder() {
-            // ... existing code ...
+            saveCardState(); // Save the current state of the card before navigating
+
+            // Clone the card-container to remove edit options like contenteditable and borders
+            const cardContainer = document.getElementById('card-container');
+            const clonedCard = cardContainer.cloneNode(true);
+            clonedCard.querySelectorAll('[contenteditable]').forEach(el => {
+                el.removeAttribute('contenteditable');
+                el.style.border = 'none'; // Remove borders for a clean look
+            });
+
+            // Store the cleaned-up card HTML in localStorage
+            localStorage.setItem('cardHTML', clonedCard.innerHTML);
+
+            // Redirect to the review page (You need to implement the review page)
+            window.location.href = '/review';
         }
 
         // Function to save the current state of the card for future editing
         function saveCardState() {
-            // ... existing code ...
+            const cardContainer = document.getElementById('card-container');
+            localStorage.setItem('cardState', cardContainer.innerHTML); // Save the full HTML of the card container
         }
 
         // Function to restore the saved card state (if exists) and reapply editable and draggable functionality
         function restoreCardState() {
-            // ... existing code ...
+            const savedState = localStorage.getItem('cardState');
+            if (savedState) {
+                document.getElementById('card-container').innerHTML = savedState;
+                // Reapply editable and draggable functionality to the restored elements
+                document.querySelectorAll('#card-container > div').forEach(el => {
+                    el.setAttribute('contenteditable', 'true');
+                    el.style.cursor = 'move';
+                    el.onclick = function(event) {
+                        if (!isDragging) {
+                            selectTextField(el);
+                        }
+                    };
+                    makeDraggable(el);
+                });
+            }
         }
 
         // Call the restoreCardState function on page load to continue editing
@@ -154,27 +248,118 @@
 
         // Function to add a new text field
         function addTextField() {
-            // ... existing code ...
+            textFieldCount++;
+            const cardContainer = document.getElementById('card-container');
+            const newTextField = document.createElement('div');
+
+            newTextField.setAttribute('contenteditable', 'true');
+            newTextField.style.position = 'absolute';
+            newTextField.style.top = (textFieldCount * 20) + 'px';
+            newTextField.style.left = (textFieldCount * 20) + 'px';
+            newTextField.style.cursor = 'move';
+            newTextField.style.border = '1px dashed #000';
+            newTextField.style.padding = '5px';
+            newTextField.style.backgroundColor = 'rgba(255,255,255,0.7)';
+            newTextField.innerText = 'Editable Text';
+            newTextField.onclick = function(event) {
+                if (!isDragging) {
+                    selectTextField(newTextField);
+                }
+            };
+
+            cardContainer.appendChild(newTextField);
+            makeDraggable(newTextField);
         }
 
         // Function to select a text field
         function selectTextField(field) {
-            // ... existing code ...
+            if (selectedTextField) {
+                selectedTextField.style.border = '1px dashed #000'; // Unselect current field
+            }
+            selectedTextField = field;
+            selectedTextField.style.border = '2px solid red'; // Highlight selected field
+            selectedTextField.focus(); // Focus on the text field for editing
         }
 
         // Function to remove the selected text field
         function removeSelectedTextField() {
-            // ... existing code ...
+            if (selectedTextField) {
+                selectedTextField.remove();
+                selectedTextField = null;
+            }
         }
 
         // Update font, size, and color of the selected text field
         function updateSelectedTextStyle() {
-            // ... existing code ...
+            if (!selectedTextField) return;
+
+            const font = document.getElementById('font-select').value;
+            const size = document.getElementById('font-size').value;
+            const color = document.getElementById('font-color').value;
+
+            selectedTextField.style.fontFamily = font;
+            selectedTextField.style.fontSize = size + 'px';
+            selectedTextField.style.color = color;
         }
 
-        // Make text field draggable
+        // Make text field draggable (with touch support)
         function makeDraggable(element) {
-            // ... existing code with touch support ...
+            let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
+
+            element.addEventListener('mousedown', dragMouseDown);
+            element.addEventListener('touchstart', dragTouchStart);
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                isDragging = false;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                document.addEventListener('mousemove', elementDragMouse);
+                document.addEventListener('mouseup', closeDragElementMouse);
+            }
+
+            function elementDragMouse(e) {
+                e.preventDefault();
+                isDragging = true;
+                offsetX = mouseX - e.clientX;
+                offsetY = mouseY - e.clientY;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
+            }
+
+            function closeDragElementMouse() {
+                document.removeEventListener('mousemove', elementDragMouse);
+                document.removeEventListener('mouseup', closeDragElementMouse);
+                setTimeout(() => { isDragging = false; }, 100);
+            }
+
+            function dragTouchStart(e) {
+                e.preventDefault();
+                isDragging = false;
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                document.addEventListener('touchmove', elementDragTouch);
+                document.addEventListener('touchend', closeDragElementTouch);
+            }
+
+            function elementDragTouch(e) {
+                e.preventDefault();
+                isDragging = true;
+                offsetX = mouseX - e.touches[0].clientX;
+                offsetY = mouseY - e.touches[0].clientY;
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
+            }
+
+            function closeDragElementTouch() {
+                document.removeEventListener('touchmove', elementDragTouch);
+                document.removeEventListener('touchend', closeDragElementTouch);
+                setTimeout(() => { isDragging = false; }, 100);
+            }
         }
 
         // Initialize Resize Handlers
@@ -297,7 +482,6 @@
                 document.removeEventListener('touchend', stopResizeAspectTouch);
             }
         }
-
     </script>
 </body>
 </html>
