@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Review Your Card</title>
     <style>
-        /* Styles for the card container */
+        /* Card container setup */
         #card-container {
             width: 30vw;
             height: 40vw;
@@ -33,20 +33,15 @@
             background-color: transparent;
         }
 
-        /* Style for the buttons */
-        .action-buttons {
+        /* Style for text fields */
+        .text-field {
+            position: absolute;
+            /* Other styles will be preserved from saved card */
+        }
+
+        /* Use the same button styles as in home.html */
+        button {
             margin-top: 20px;
-        }
-
-        .action-buttons button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        /* Ensure the content is aligned to the top-left */
-        body {
-            margin: 20px;
         }
     </style>
 </head>
@@ -57,9 +52,9 @@
     </div>
 
     <!-- Buttons for editing and proceeding to payment -->
-    <div class="action-buttons">
-        <button onclick="editCard()">Edit Card</button>
-        <button onclick="proceedToPayment()">Pay</button>
+    <div>
+        <button onclick="editCard()" style="margin-top: 20px;">Edit Card</button>
+        <button onclick="proceedToPayment()" style="margin-top: 20px;">Pay</button>
     </div>
 
     <script>
