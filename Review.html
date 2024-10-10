@@ -1,81 +1,74 @@
-<div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
-    <!-- The card content will be displayed here -->
-</div>
-
-<!-- Back to Edit Card Button -->
-<button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
-
-<!-- Pay Button -->
-<button onclick="redirectToPayment()" style="margin-top: 20px;">Pay</button>
-
-<script>
-    // Function to load the card content from localStorage and display it
-    function loadCard() {
-        const cardHTML = localStorage.getItem('cardHTML');
-        
-        if (cardHTML) {
-            const reviewCardContainer = document.getElementById('review-card-container');
-            reviewCardContainer.innerHTML = cardHTML;
-        } else {
-            console.error('No card data found in localStorage');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Review Your Card</title>
+    <style>
+        /* Styles for the card display */
+        #card-display {
+            width: 30vw;
+            height: 40vw;
+            position: relative;
+            border: 1px solid #000;
+            background-color: white;
+            margin-bottom: 20px;
         }
-    }
 
-    // Function to print the card with centered layout
-    function printCard() {
-        var card = document.getElementById('review-card-container');
-        var printWindow = window.open('', 'Print-Window');
-        
-        printWindow.document.write(
-            <html>
-            <head>
-                <style>
-                    @media print {
-                        body {
-                            margin: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100vh;
-                            width: 100vw;
-                        }
-                        #review-card-container, img {
-                            border: 1px solid #000;
-                        }
-                        @page {
-                            margin: 0;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
-                    ${card.innerHTML}
-                </div>
-                <!-- Include image in the print window as well -->
-                <img src="https://images.squarespace-cdn.com/content/v1/66cd4946bea1c563dc862564/af009904-2d2e-4cef-94be-d8e172f1e00f/specimen.png?format=1500w" alt="Bitcoin Sample Card" style="width: 300px; height: 200px; display: block;">
-            </body>
-            </html>
-        );
-        
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(function () {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    }
+        /* Center the content */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    // Function to go back to the home page for editing
-    function backToEditCard() {
-        window.location.href = '/'; // Redirect back to the home page
-    }
+        /* Style for the buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
 
-    // Function to redirect to the payment page
-    function redirectToPayment() {
-        window.location.href = '/final'; // Redirect to the "Final" page
-    }
+        .action-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>Review Your Card</h2>
+    <div id="card-display">
+        <!-- The saved card content will be inserted here -->
+    </div>
 
-    // Call the loadCard function on page load
-    window.onload = loadCard;
-</script>
+    <!-- Buttons for editing and proceeding to payment -->
+    <div class="action-buttons">
+        <button onclick="editCard()">Edit Card</button>
+        <button onclick="proceedToPayment()">Pay</button>
+    </div>
+
+    <script>
+        // Function to display the saved card
+        function displaySavedCard() {
+            const cardHTML = localStorage.getItem('cardHTML');
+            if (cardHTML) {
+                document.getElementById('card-display').innerHTML = cardHTML;
+            } else {
+                document.getElementById('card-display').innerHTML = '<p>No card data found. Please create your card first.</p>';
+            }
+        }
+
+        // Function to redirect back to the home page for editing
+        function editCard() {
+            window.location.href = 'home.html';
+        }
+
+        // Function to proceed to the payment page
+        function proceedToPayment() {
+            window.location.href = 'final.html';
+        }
+
+        // Display the card when the page loads
+        window.onload = displaySavedCard;
+    </script>
+</body>
+</html>
