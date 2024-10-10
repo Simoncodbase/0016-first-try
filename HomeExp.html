@@ -1,6 +1,58 @@
-<div id="card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #card-container {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            border: 1px solid #000;
+            background-color: grey;
+            overflow: hidden;
+            touch-action: none; /* Prevent touch gestures like pinch-to-zoom */
+        }
+
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .resize-handle {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.2); /* Semi-transparent for visibility */
+            z-index: 10;
+        }
+
+        .resize-handle.bottom-right {
+            width: 20px;
+            height: 20px;
+            right: 0;
+            bottom: 0;
+            cursor: nwse-resize;
+        }
+
+        .resize-handle.bottom {
+            width: 100%;
+            height: 10px;
+            bottom: 0;
+            left: 0;
+            cursor: ns-resize;
+        }
+    </style>
+</head>
+<body>
+
+<div id="card-container">
     <!-- Background Image (Initially hidden) -->
-    <img id="background" src="" style="width: 300px; height: 200px; position: absolute; top: 0; left: 0; display: none;">
+    <img id="background" src="" alt="Background Image">
+
+    <!-- Resize Handles -->
+    <div class="resize-handle bottom-right"></div>
+    <div class="resize-handle bottom"></div>
 </div>
 
 <!-- Category Selector -->
@@ -62,24 +114,24 @@
     // Data: category backgrounds
     const categoryBackgrounds = {
         'crypto-king': [
-            'https://via.placeholder.com/150x100?text=Crypto-King+1',
-            'https://via.placeholder.com/150x100?text=Crypto-King+2',
-            'https://via.placeholder.com/150x100?text=Crypto-King+3',
+            'https://via.placeholder.com/300x200?text=Crypto-King+1',
+            'https://via.placeholder.com/300x200?text=Crypto-King+2',
+            'https://via.placeholder.com/300x200?text=Crypto-King+3',
         ],
         'crypto-queen': [
-            'https://via.placeholder.com/150x100?text=Crypto-Queen+1',
-            'https://via.placeholder.com/150x100?text=Crypto-Queen+2',
-            'https://via.placeholder.com/150x100?text=Crypto-Queen+3',
+            'https://via.placeholder.com/300x200?text=Crypto-Queen+1',
+            'https://via.placeholder.com/300x200?text=Crypto-Queen+2',
+            'https://via.placeholder.com/300x200?text=Crypto-Queen+3',
         ],
         'birthday': [
-            'https://via.placeholder.com/150x100?text=Birthday+1',
-            'https://via.placeholder.com/150x100?text=Birthday+2',
-            'https://via.placeholder.com/150x100?text=Birthday+3',
+            'https://via.placeholder.com/300x200?text=Birthday+1',
+            'https://via.placeholder.com/300x200?text=Birthday+2',
+            'https://via.placeholder.com/300x200?text=Birthday+3',
         ],
         'christmas': [
-            'https://via.placeholder.com/150x100?text=Christmas+1',
-            'https://via.placeholder.com/150x100?text=Christmas+2',
-            'https://via.placeholder.com/150x100?text=Christmas+3',
+            'https://via.placeholder.com/300x200?text=Christmas+1',
+            'https://via.placeholder.com/300x200?text=Christmas+2',
+            'https://via.placeholder.com/300x200?text=Christmas+3',
         ],
     };
 
@@ -176,10 +228,11 @@
     function restoreCardState() {
         const savedState = localStorage.getItem('cardState');
         if (savedState) {
-            document.getElementById('card-container').innerHTML = savedState;
+            const cardContainer = document.getElementById('card-container');
+            cardContainer.innerHTML = savedState;
+
             // Reapply editable and draggable functionality to the restored elements
-            document.querySelectorAll('#card-container > div').forEach(el => {
-                el.setAttribute('contenteditable', 'true');
+            cardContainer.querySelectorAll('div[contenteditable]').forEach(el => {
                 el.style.cursor = 'move';
                 el.onclick = function() {
                     selectTextField(el);
@@ -190,7 +243,10 @@
     }
 
     // Call the restoreCardState function on page load to continue editing
-    window.onload = restoreCardState;
+    window.onload = function() {
+        restoreCardState();
+        initResizeHandles(); // Initialize resize handles
+    };
 
     let textFieldCount = 0;
     let selectedTextField = null;
@@ -269,22 +325,28 @@
         let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
 
         element.onmousedown = dragMouseDown;
+        element.ontouchstart = dragMouseDown;
 
         function dragMouseDown(e) {
             e.preventDefault();
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+            isDragging = false;
+            mouseX = e.clientX || e.touches[0].clientX;
+            mouseY = e.clientY || e.touches[0].clientY;
             document.onmouseup = closeDragElement;
             document.onmousemove = elementDrag;
+            document.ontouchend = closeDragElement;
+            document.ontouchmove = elementDrag;
         }
 
         function elementDrag(e) {
             e.preventDefault();
             isDragging = true; // Set the dragging flag when moving the element
-            offsetX = mouseX - e.clientX;
-            offsetY = mouseY - e.clientY;
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+            let clientX = e.clientX || e.touches[0].clientX;
+            let clientY = e.clientY || e.touches[0].clientY;
+            offsetX = mouseX - clientX;
+            offsetY = mouseY - clientY;
+            mouseX = clientX;
+            mouseY = clientY;
             element.style.top = (element.offsetTop - offsetY) + "px";
             element.style.left = (element.offsetLeft - offsetX) + "px";
         }
@@ -292,7 +354,101 @@
         function closeDragElement() {
             document.onmouseup = null;
             document.onmousemove = null;
+            document.ontouchend = null;
+            document.ontouchmove = null;
             setTimeout(() => { isDragging = false; }, 100); // Delay resetting the dragging flag
         }
     }
+
+    // Resizing functionality
+    function initResizeHandles() {
+        var cardContainer = document.getElementById('card-container');
+        var aspectRatio = cardContainer.offsetWidth / cardContainer.offsetHeight;
+
+        var resizeHandleBR = document.querySelector('.resize-handle.bottom-right');
+        var resizeHandleBottom = document.querySelector('.resize-handle.bottom');
+
+        resizeHandleBR.addEventListener('mousedown', initResizeBR);
+        resizeHandleBR.addEventListener('touchstart', initResizeBR, { passive: false });
+
+        resizeHandleBottom.addEventListener('mousedown', initResizeBottom);
+        resizeHandleBottom.addEventListener('touchstart', initResizeBottom, { passive: false });
+
+        function initResizeBR(e) {
+            e.preventDefault();
+            document.addEventListener('mousemove', ResizeBR);
+            document.addEventListener('mouseup', stopResizeBR);
+            document.addEventListener('touchmove', ResizeBR, { passive: false });
+            document.addEventListener('touchend', stopResizeBR);
+        }
+
+        function initResizeBottom(e) {
+            e.preventDefault();
+            document.addEventListener('mousemove', ResizeBottom);
+            document.addEventListener('mouseup', stopResizeBottom);
+            document.addEventListener('touchmove', ResizeBottom, { passive: false });
+            document.addEventListener('touchend', stopResizeBottom);
+        }
+
+        function ResizeBR(e) {
+            e.preventDefault();
+            var clientX = e.clientX || e.touches[0].clientX;
+            var clientY = e.clientY || e.touches[0].clientY;
+
+            var rect = cardContainer.getBoundingClientRect();
+            var offsetX = clientX - rect.left;
+            var newWidth = offsetX;
+            var newHeight = newWidth / aspectRatio;
+
+            if (newWidth >= 100 && newHeight >= 100) { // Minimum size constraints
+                cardContainer.style.width = newWidth + 'px';
+                cardContainer.style.height = newHeight + 'px';
+
+                // Adjust the background image size
+                var backgroundImage = document.getElementById('background');
+                backgroundImage.style.width = '100%';
+                backgroundImage.style.height = '100%';
+
+                // Recalculate aspect ratio
+                aspectRatio = newWidth / newHeight;
+            }
+        }
+
+        function ResizeBottom(e) {
+            e.preventDefault();
+            var clientY = e.clientY || e.touches[0].clientY;
+
+            var rect = cardContainer.getBoundingClientRect();
+            var offsetY = clientY - rect.top;
+            var newHeight = offsetY;
+
+            if (newHeight >= 100) { // Minimum height constraint
+                cardContainer.style.height = newHeight + 'px';
+
+                // Adjust the background image height
+                var backgroundImage = document.getElementById('background');
+                backgroundImage.style.height = '100%';
+
+                // Recalculate aspect ratio
+                aspectRatio = cardContainer.offsetWidth / newHeight;
+            }
+        }
+
+        function stopResizeBR() {
+            document.removeEventListener('mousemove', ResizeBR);
+            document.removeEventListener('mouseup', stopResizeBR);
+            document.removeEventListener('touchmove', ResizeBR);
+            document.removeEventListener('touchend', stopResizeBR);
+        }
+
+        function stopResizeBottom() {
+            document.removeEventListener('mousemove', ResizeBottom);
+            document.removeEventListener('mouseup', stopResizeBottom);
+            document.removeEventListener('touchmove', ResizeBottom);
+            document.removeEventListener('touchend', stopResizeBottom);
+        }
+    }
 </script>
+
+</body>
+</html>
