@@ -1,11 +1,3 @@
-<!-- Card Size Inputs -->
-<div style="margin-bottom: 10px;">
-    <label for="card-width">Card Width:</label>
-    <input type="number" id="card-width" value="300" min="100" onchange="updateCardSize()">
-    <label for="card-height">Card Height:</label>
-    <input type="number" id="card-height" value="200" min="100" onchange="updateCardSize()">
-</div>
-
 <!-- Card Container -->
 <div id="card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
     <!-- Background Image (Initially hidden) -->
@@ -49,7 +41,7 @@
         <option style="font-family: Impact;" value="Impact">Impact</option>
         <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
     </select>
-
+    
     <label for="font-size">Size:</label>
     <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
 
@@ -72,10 +64,10 @@
             el.removeAttribute('contenteditable');
             el.style.border = 'none'; // Remove dashed borders for a clean look
         });
-
+        
         // Store the cleaned-up card HTML in localStorage
         localStorage.setItem('cardHTML', clonedCard.innerHTML);
-
+        
         // Redirect to the review page
         window.location.href = '/review';
     }
@@ -84,30 +76,13 @@
     function saveCardState() {
         const cardContainer = document.getElementById('card-container');
         localStorage.setItem('cardState', cardContainer.innerHTML); // Save the full HTML of the card container
-        // Also save the card size
-        localStorage.setItem('cardWidth', cardContainer.style.width);
-        localStorage.setItem('cardHeight', cardContainer.style.height);
     }
 
     // Function to restore the saved card state (if exists) and reapply editable and draggable functionality
     function restoreCardState() {
         const savedState = localStorage.getItem('cardState');
         if (savedState) {
-            const cardContainer = document.getElementById('card-container');
-            cardContainer.innerHTML = savedState;
-
-            // Restore the card size
-            const savedWidth = localStorage.getItem('cardWidth');
-            const savedHeight = localStorage.getItem('cardHeight');
-            if (savedWidth && savedHeight) {
-                cardContainer.style.width = savedWidth;
-                cardContainer.style.height = savedHeight;
-
-                // Update the input fields
-                document.getElementById('card-width').value = parseInt(savedWidth);
-                document.getElementById('card-height').value = parseInt(savedHeight);
-            }
-
+            document.getElementById('card-container').innerHTML = savedState;
             // Reapply editable and draggable functionality to the restored elements
             document.querySelectorAll('#card-container > div').forEach(el => {
                 el.setAttribute('contenteditable', 'true');
@@ -132,7 +107,7 @@
         textFieldCount++;
         const cardContainer = document.getElementById('card-container');
         const newTextField = document.createElement('div');
-
+        
         newTextField.setAttribute('contenteditable', 'true');
         newTextField.style.position = 'absolute';
         newTextField.style.top = `${textFieldCount * 20}px`;
@@ -146,7 +121,7 @@
                 selectTextField(newTextField);
             }
         };
-
+        
         cardContainer.appendChild(newTextField);
         makeDraggable(newTextField);
     }
@@ -172,11 +147,11 @@
     // Update font, size, and color of the selected text field
     function updateSelectedTextStyle() {
         if (!selectedTextField) return;
-
+        
         const font = document.getElementById('font-select').value;
         const size = document.getElementById('font-size').value;
         const color = document.getElementById('font-color').value;
-
+        
         selectedTextField.style.fontFamily = font;
         selectedTextField.style.fontSize = size + 'px';
         selectedTextField.style.color = color;
@@ -185,7 +160,7 @@
     // Make text field draggable
     function makeDraggable(element) {
         let offsetX = 0, offsetY = 0, mouseX = 0, mouseY = 0;
-
+        
         element.onmousedown = dragMouseDown;
 
         function dragMouseDown(e) {
@@ -203,18 +178,8 @@
             offsetY = mouseY - e.clientY;
             mouseX = e.clientX;
             mouseY = e.clientY;
-
-            const cardContainer = document.getElementById('card-container');
-
-            let newTop = element.offsetTop - offsetY;
-            let newLeft = element.offsetLeft - offsetX;
-
-            // Ensure the element stays within the card container
-            newTop = Math.max(0, Math.min(newTop, cardContainer.offsetHeight - element.offsetHeight));
-            newLeft = Math.max(0, Math.min(newLeft, cardContainer.offsetWidth - element.offsetWidth));
-
-            element.style.top = newTop + "px";
-            element.style.left = newLeft + "px";
+            element.style.top = (element.offsetTop - offsetY) + "px";
+            element.style.left = (element.offsetLeft - offsetX) + "px";
         }
 
         function closeDragElement() {
@@ -229,11 +194,6 @@
         var backgroundImage = document.getElementById('background');
         backgroundImage.src = imageUrl;
         backgroundImage.style.display = 'block'; // Show the background when clicked
-
-        // Update background image size to match the card size
-        const cardContainer = document.getElementById('card-container');
-        backgroundImage.style.width = cardContainer.style.width;
-        backgroundImage.style.height = cardContainer.style.height;
     }
 
     // Function to generate AI image
@@ -250,7 +210,7 @@
         button.innerText = 'Generating...';
 
         // Send the prompt to the server-side endpoint to generate image
-        fetch('https://your-server-endpoint/generate-image', {
+        fetch('https://f300aa1c-093a-45c0-a081-3c82a472ebc0-00-2nyobtjci9hfw.picard.replit.dev/generate-image', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -287,43 +247,4 @@
             button.innerText = 'Generate your own card with AI';
         });
     }
-
-    // Function to update card size
-    function updateCardSize() {
-        const width = document.getElementById('card-width').value;
-        const height = document.getElementById('card-height').value;
-
-        const cardContainer = document.getElementById('card-container');
-        cardContainer.style.width = width + 'px';
-        cardContainer.style.height = height + 'px';
-
-        const backgroundImage = document.getElementById('background');
-        backgroundImage.style.width = width + 'px';
-        backgroundImage.style.height = height + 'px';
-
-        // Adjust positions and sizes of text fields relative to the new card size
-        adjustTextFields(width, height);
-    }
-
-    // Function to adjust text fields when card size changes
-    function adjustTextFields(newWidth, newHeight) {
-        const cardContainer = document.getElementById('card-container');
-        const oldWidth = parseFloat(cardContainer.style.width);
-        const oldHeight = parseFloat(cardContainer.style.height);
-
-        const textFields = document.querySelectorAll('#card-container > div');
-        textFields.forEach(field => {
-            // Get the original positions as percentages
-            const leftPercent = (parseFloat(field.style.left) / oldWidth) * 100;
-            const topPercent = (parseFloat(field.style.top) / oldHeight) * 100;
-
-            // Update positions based on new dimensions
-            field.style.left = (leftPercent / 100) * newWidth + 'px';
-            field.style.top = (topPercent / 100) * newHeight + 'px';
-        });
-    }
-
-    // Call the restoreCardState function on page load to continue editing
-    window.onload = restoreCardState;
-
 </script>
