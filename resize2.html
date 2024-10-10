@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customized Card Creator</title>
+    <style>
+        /* Card container setup */
+        #card-container {
+            width: 40vw; /* 40% of viewport width */
+            height: 40vw; /* Square ratio 1:1 */
+            position: relative;
+            border: 1px solid #000;
+            background-color: grey;
+        }
+
+        /* Background image styling */
+        #background {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        /* Text area below the card-container */
+        #text-area {
+            width: 40vw; /* Same width as card-container */
+            height: 20vh; /* 20% of viewport height */
+            border: 1px solid #000;
+            position: relative;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+        }
+
+        /* Style for text fields */
+        .text-field {
+            position: absolute;
+            cursor: move;
+            border: 1px dashed #000;
+            padding: 5px;
+        }
+
+        /* Selected text field */
+        .text-field.selected {
+            border: 2px solid red;
+        }
+
+        /* Style for the background images in the selector */
+        .background-image {
+            cursor: pointer;
+            width: 15vw; /* Adjusted to fit multiple images */
+            height: 15vw; /* Square ratio 1:1 */
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        /* Other styles */
+        #background-selector {
+            margin-left: 10px;
+        }
+
+        #background-images {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* Style for the font options */
+        #font-options {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="card-container">
+        <!-- Background Image (Initially hidden) -->
+        <img id="background" src="">
+    </div>
+
+    <!-- Text area below the card-container -->
+    <div id="text-area"></div>
+
+    <!-- Category Selector -->
+    <div id="background-selector">
+        <h3>Select a Background</h3>
+        <div style="display: flex; align-items: center;">
+            <label for="category-select">Category:</label>
+            <select id="category-select" onchange="updateBackgrounds()" style="margin-right: 10px;">
+                <option value="">--Select Category--</option>
+                <option value="crypto-king">Crypto-King</option>
+                <option value="crypto-queen">Crypto-Queen</option>
+                <option value="birthday">Birthday</option>
+                <option value="christmas">Christmas</option>
+                <option value="upload-own-picture">Upload Own Picture</option>
+            </select>
+            <!-- Upload Own Picture Button -->
+            <button id="upload-button" onclick="triggerFileInput()" style="display: none;">Upload Own Picture</button>
+            <!-- Hidden File Input -->
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+        </div>
+
+        <!-- Background Images will be displayed here -->
+        <div id="background-images">
+            <!-- Images will be inserted here based on the selected category -->
+        </div>
+    </div>
+
+    <!-- Add/Remove Text Buttons -->
+    <button onclick="addTextField()" style="margin-top: 20px;">Add Text Field</button>
+    <button onclick="removeSelectedTextField()" style="margin-top: 20px;">Remove Selected Text Field</button>
+
+    <!-- Font, Size, and Color Selectors -->
+    <div id="font-options">
+        <label for="font-select">Font:</label>
+        <select id="font-select" onchange="updateSelectedTextStyle()">
+            <option style="font-family: Arial;" value="Arial">Arial</option>
+            <option style="font-family: 'Times New Roman';" value="Times New Roman">Times New Roman</option>
+            <option style="font-family: 'Courier New';" value="Courier New">Courier New</option>
+            <option style="font-family: Georgia;" value="Georgia">Georgia</option>
+            <option style="font-family: Verdana;" value="Verdana">Verdana</option>
+            <option style="font-family: Tahoma;" value="Tahoma">Tahoma</option>
+            <option style="font-family: 'Trebuchet MS';" value="Trebuchet MS">Trebuchet MS</option>
+            <option style="font-family: 'Comic Sans MS';" value="Comic Sans MS">Comic Sans MS</option>
+            <option style="font-family: Impact;" value="Impact">Impact</option>
+            <option style="font-family: Papyrus;" value="Papyrus">Papyrus</option>
+        </select>
+
+        <label for="font-size">Size:</label>
+        <input type="number" id="font-size" value="14" min="10" onchange="updateSelectedTextStyle()">
+
+        <label for="font-color">Color:</label>
+        <input type="color" id="font-color" value="#000000" onchange="updateSelectedTextStyle()">
+    </div>
+
+    <!-- Review Order Button -->
+    <button onclick="reviewOrder()" style="margin-top: 20px;">Review Order</button>
+
+    <script>
+        // Data: category backgrounds
+        const categoryBackgrounds = {
+            'crypto-king': [
+                'https://via.placeholder.com/600?text=Crypto-King+1',
+                'https://via.placeholder.com/600?text=Crypto-King+2',
+                'https://via.placeholder.com/600?text=Crypto-King+3',
+            ],
+            'crypto-queen': [
+                'https://via.placeholder.com/600?text=Crypto-Queen+1',
+                'https://via.placeholder.com/600?text=Crypto-Queen+2',
+                'https://via.placeholder.com/600?text=Crypto-Queen+3',
+            ],
+            'birthday': [
+                'https://via.placeholder.com/600?text=Birthday+1',
+                'https://via.placeholder.com/600?text=Birthday+2',
+                'https://via.placeholder.com/600?text=Birthday+3',
+            ],
+            'christmas': [
+                'https://via.placeholder.com/600?text=Christmas+1',
+                'https://via.placeholder.com/600?text=Christmas+2',
+                'https://via.placeholder.com/600?text=Christmas+3',
+            ],
+        };
+
+        // Function to update background images based on selected category
+        function updateBackgrounds() {
+            const category = document.getElementById('category-select').value;
+            const backgroundImagesDiv = document.getElementById('background-images');
+            const uploadButton = document.getElementById('upload-button');
+
+            backgroundImagesDiv.innerHTML = ''; // Clear previous images
+            uploadButton.style.display = 'none'; // Hide the upload button by default
+
+            if (category === 'upload-own-picture') {
+                // Show the upload button
+                uploadButton.style.display = 'block';
+            } else if (category && categoryBackgrounds[category]) {
+                categoryBackgrounds[category].forEach(imageUrl => {
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.classList.add('background-image');
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                });
+            }
+        }
+
+        // Function to trigger file input when upload button is clicked
+        function triggerFileInput() {
+            document.getElementById('file-input').click();
+        }
+
+        // Function to handle the file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    // Display the uploaded image in the background-images div
+                    const backgroundImagesDiv = document.getElementById('background-images');
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.classList.add('background-image');
+                    img.onclick = function() {
+                        changeBackground(imageUrl);
+                    };
+                    backgroundImagesDiv.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Function to change the background
+        function changeBackground(imageUrl) {
+            var backgroundImage = document.getElementById('background');
+            backgroundImage.src = imageUrl;
+            backgroundImage.style.display = 'block'; // Show the background when clicked
+        }
+
+        // Function to handle the review order and save the card content to localStorage
+        function reviewOrder() {
+            saveCardState(); // Save the current state of the card before navigating
+
+            // Clone the card-container and text-area to remove edit options like contenteditable and dashed borders
+            const cardContainer = document.getElementById('card-container');
+            const textArea = document.getElementById('text-area');
+            const clonedCard = cardContainer.cloneNode(true);
+            const clonedTextArea = textArea.cloneNode(true);
+
+            [clonedCard, clonedTextArea].forEach(container => {
+                container.querySelectorAll('[contenteditable]').forEach(el => {
+                    el.removeAttribute('contenteditable');
+                    el.style.border = 'none'; // Remove borders for a cle
