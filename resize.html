@@ -5,26 +5,11 @@
     <style>
         /* Styles for mobile responsiveness and resize handles */
         #card-container {
-            width: 300px;
-            height: 200px;
-            position: relative;
-            border: 1px solid #000;
-            background-color: grey;
             max-width: 100%;
             max-height: 100%;
             touch-action: none; /* Prevent default touch actions for better touch handling */
             user-select: none; /* Prevent text selection during drag */
             overflow: hidden; /* Hide overflow during resizing */
-        }
-        /* Style for the background image */
-        #background {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: none;
-            object-fit: cover;
         }
         /* Style for the resize handles */
         #resize-handle-height,
@@ -51,9 +36,9 @@
 </head>
 <body>
     <!-- Card Container with Resize Handles -->
-    <div id="card-container">
+    <div id="card-container" style="width: 300px; height: 400px; position: relative; border: 1px solid #000; background-color: grey;">
         <!-- Background Image (Initially hidden) -->
-        <img id="background" src="" alt="Background Image">
+        <img id="background" src="" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none; object-fit: cover;">
         <!-- Resize Handle for Height -->
         <div id="resize-handle-height"></div>
         <!-- Resize Handle for Aspect Ratio -->
@@ -119,24 +104,24 @@
         // Data: category backgrounds
         const categoryBackgrounds = {
             'crypto-king': [
-                'https://via.placeholder.com/300x200?text=Crypto-King+1',
-                'https://via.placeholder.com/300x200?text=Crypto-King+2',
-                'https://via.placeholder.com/300x200?text=Crypto-King+3',
+                'https://via.placeholder.com/300x400?text=Crypto-King+1',
+                'https://via.placeholder.com/300x400?text=Crypto-King+2',
+                'https://via.placeholder.com/300x400?text=Crypto-King+3',
             ],
             'crypto-queen': [
-                'https://via.placeholder.com/300x200?text=Crypto-Queen+1',
-                'https://via.placeholder.com/300x200?text=Crypto-Queen+2',
-                'https://via.placeholder.com/300x200?text=Crypto-Queen+3',
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+1',
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+2',
+                'https://via.placeholder.com/300x400?text=Crypto-Queen+3',
             ],
             'birthday': [
-                'https://via.placeholder.com/300x200?text=Birthday+1',
-                'https://via.placeholder.com/300x200?text=Birthday+2',
-                'https://via.placeholder.com/300x200?text=Birthday+3',
+                'https://via.placeholder.com/300x400?text=Birthday+1',
+                'https://via.placeholder.com/300x400?text=Birthday+2',
+                'https://via.placeholder.com/300x400?text=Birthday+3',
             ],
             'christmas': [
-                'https://via.placeholder.com/300x200?text=Christmas+1',
-                'https://via.placeholder.com/300x200?text=Christmas+2',
-                'https://via.placeholder.com/300x200?text=Christmas+3',
+                'https://via.placeholder.com/300x400?text=Christmas+1',
+                'https://via.placeholder.com/300x400?text=Christmas+2',
+                'https://via.placeholder.com/300x400?text=Christmas+3',
             ],
         };
 
@@ -158,7 +143,7 @@
                     img.src = imageUrl;
                     img.style.cursor = 'pointer';
                     img.style.width = '150px';
-                    img.style.height = '100px';
+                    img.style.height = '200px';
                     img.style.marginRight = '10px';
                     img.style.marginBottom = '10px';
                     img.onclick = function() {
@@ -187,7 +172,7 @@
                     img.src = imageUrl;
                     img.style.cursor = 'pointer';
                     img.style.width = '150px';
-                    img.style.height = '100px';
+                    img.style.height = '200px';
                     img.style.marginRight = '10px';
                     img.style.marginBottom = '10px';
                     img.onclick = function() {
@@ -235,11 +220,10 @@
         function restoreCardState() {
             const savedState = localStorage.getItem('cardState');
             if (savedState) {
-                const cardContainer = document.getElementById('card-container');
-                cardContainer.innerHTML = savedState;
-
+                document.getElementById('card-container').innerHTML = savedState;
                 // Reapply editable and draggable functionality to the restored elements
-                cardContainer.querySelectorAll('div[contenteditable]').forEach(el => {
+                document.querySelectorAll('#card-container > div').forEach(el => {
+                    el.setAttribute('contenteditable', 'true');
                     el.style.cursor = 'move';
                     el.onclick = function(event) {
                         if (!isDragging) {
@@ -277,16 +261,6 @@
             newTextField.style.padding = '5px';
             newTextField.style.backgroundColor = 'rgba(255,255,255,0.7)';
             newTextField.innerText = 'Editable Text';
-
-            // Add event listener to remove placeholder text when user starts typing
-            function removePlaceholderText() {
-                if (newTextField.innerText.trim() === 'Editable Text') {
-                    newTextField.innerText = '';
-                    newTextField.removeEventListener('input', removePlaceholderText);
-                }
-            }
-            newTextField.addEventListener('input', removePlaceholderText);
-
             newTextField.onclick = function(event) {
                 if (!isDragging) {
                     selectTextField(newTextField);
@@ -295,9 +269,6 @@
 
             cardContainer.appendChild(newTextField);
             makeDraggable(newTextField);
-
-            // Automatically select the new text field
-            selectTextField(newTextField);
         }
 
         // Function to select a text field
@@ -430,9 +401,6 @@
                 let newHeight = startHeight + (e.clientY - startY);
                 if (newHeight > 100) { // Minimum height
                     cardContainer.style.height = newHeight + 'px';
-                    // Update background image height
-                    const backgroundImage = document.getElementById('background');
-                    backgroundImage.style.height = '100%';
                 }
             }
 
@@ -447,9 +415,6 @@
                 let newHeight = startHeight + (e.touches[0].clientY - startY);
                 if (newHeight > 100) { // Minimum height
                     cardContainer.style.height = newHeight + 'px';
-                    // Update background image height
-                    const backgroundImage = document.getElementById('background');
-                    backgroundImage.style.height = '100%';
                 }
             }
 
@@ -491,10 +456,6 @@
                 if (newWidth > 100 && newHeight > 100) { // Minimum size
                     cardContainer.style.width = newWidth + 'px';
                     cardContainer.style.height = newHeight + 'px';
-                    // Update background image size
-                    const backgroundImage = document.getElementById('background');
-                    backgroundImage.style.width = '100%';
-                    backgroundImage.style.height = '100%';
                 }
             }
 
@@ -512,10 +473,6 @@
                 if (newWidth > 100 && newHeight > 100) { // Minimum size
                     cardContainer.style.width = newWidth + 'px';
                     cardContainer.style.height = newHeight + 'px';
-                    // Update background image size
-                    const backgroundImage = document.getElementById('background');
-                    backgroundImage.style.width = '100%';
-                    backgroundImage.style.height = '100%';
                 }
             }
 
