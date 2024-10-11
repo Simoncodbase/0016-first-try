@@ -2,45 +2,99 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bitcoin Card Generator</title>
-    <!-- No external scripts are needed after removing the address generation functionality -->
+    <title>Review Your Card</title>
+    <style>
+        /* Card container setup */
+        #card-container {
+            width: 30vw;
+            height: 40vw;
+            position: relative;
+            border: 1px solid #000;
+            background-color: white;
+        }
+
+        /* Background image styling */
+        #background {
+            width: 30vw;
+            height: 30vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block; /* Ensure background is visible */
+        }
+
+        /* Text area styling */
+        #text-area {
+            position: absolute;
+            top: 30vw;
+            left: 0;
+            width: 100%;
+            height: 10vw;
+            background-color: transparent;
+        }
+
+        /* Style for text fields */
+        .text-field {
+            position: absolute;
+            /* Other styles will be preserved from saved card */
+        }
+
+        /* Use the same button styles as in home.html */
+        button {
+            margin-top: 20px;
+        }
+
+        /* New styles for layout */
+        .main-container {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .controls-container {
+            margin-left: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div id="review-card-container" style="width: 300px; height: 200px; position: relative; border: 1px solid #000; background-color: grey;">
-        <!-- The card content will be displayed here -->
+    <div class="main-container">
+        <!-- Card Container -->
+        <div id="card-container">
+            <!-- The saved card content will be inserted here -->
+        </div>
+
+        <!-- Controls Container -->
+        <div class="controls-container">
+            <!-- Buttons for editing and proceeding to payment -->
+            <button onclick="editCard()">Edit Card</button>
+            <button onclick="proceedToPayment()">Pay</button>
+        </div>
     </div>
 
-    <!-- Back to Edit Card Button -->
-    <button onclick="backToEditCard()" style="margin-top: 20px;">Back to Edit Card</button>
-
-    <!-- Pay Button -->
-    <button onclick="redirectToPayment()" style="margin-top: 20px;">Pay</button>
-
     <script>
-        // Function to load the card content from localStorage and display it
-        function loadCard() {
-            const cardHTML = localStorage.getItem('cardHTML');
+        // Function to display the saved card
+        function displaySavedCard() {
+            const cardContainer = document.getElementById('card-container');
+            const savedCardHTML = localStorage.getItem('cardHTML');
 
-            if (cardHTML) {
-                const reviewCardContainer = document.getElementById('review-card-container');
-                reviewCardContainer.innerHTML = cardHTML;
+            if (savedCardHTML) {
+                cardContainer.innerHTML = savedCardHTML;
             } else {
-                console.error('No card data found in localStorage');
+                cardContainer.innerHTML = '<p>No card data found. Please create your card first.</p>';
             }
         }
 
-        // Function to go back to the home page for editing
-        function backToEditCard() {
-            window.location.href = '/'; // Redirect back to the home page
+        // Function to redirect back to the home page for editing
+        function editCard() {
+            window.location.href = 'home.html';
         }
 
-        // Function to redirect to the payment page
-        function redirectToPayment() {
-            window.location.href = '/final'; // Redirect to the "Final" page
+        // Function to proceed to the payment page
+        function proceedToPayment() {
+            window.location.href = 'final.html';
         }
 
-        // Call the loadCard function on page load
-        window.onload = loadCard;
+        // Display the card when the page loads
+        window.onload = displaySavedCard;
     </script>
 </body>
 </html>
