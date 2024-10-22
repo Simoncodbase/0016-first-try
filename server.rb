@@ -7,7 +7,7 @@ Stripe.api_key = 'sk_test_51Q9TrZEAbBnxrSl5bifc8VeL3x7jUlRkbmB7SMQp2a4cePgXmUTrD
 set :static, true
 set :port, 4242
 
-YOUR_DOMAIN = 'http://localhost:4242'
+YOUR_DOMAIN = 'https://giftbitcoin.netlify.app'
 
 post '/create-checkout-session' do
   content_type 'application/json'
