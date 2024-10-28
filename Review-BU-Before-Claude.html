@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Review Your Card</title>
+    <style>
+        /* Card container setup */
+        #card-container {
+            width: 30vw;
+            height: 40vw;
+            position: relative;
+            border: 1px solid #000;
+            background-color: white;
+        }
 
+        /* Background image styling */
+        #background {
+            width: 30vw;
+            height: 30vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block; /* Ensure background is visible */
+        }
+
+        /* Text area styling */
+        #text-area {
+            position: absolute;
+            top: 30vw;
+            left: 0;
+            width: 100%;
+            height: 10vw;
+            background-color: transparent;
+        }
+
+        /* Style for text fields */
+        .text-field {
+            position: absolute;
+            /* Other styles will be preserved from saved card */
+        }
+
+        /* Use the same button styles as in home.html */
+        button {
+            margin-top: 20px;
+        }
+
+        /* New styles for layout */
+        .main-container {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .controls-container {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Card Container -->
+        <div id="card-container">
+            <!-- The saved card content will be inserted here -->
+        </div>
+
+        <!-- Controls Container -->
+        <div class="controls-container">
+            <!-- Buttons for editing and proceeding to payment -->
+            <button onclick="editCard()">Edit Card</button>
+            <button onclick="proceedToPayment()">Pay</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to display the saved card
+        function displaySavedCard() {
+            const cardContainer = document.getElementById('card-container');
+            const savedCardHTML = localStorage.getItem('cardHTML');
+
+            if (savedCardHTML) {
+                cardContainer.innerHTML = savedCardHTML;
+            } else {
+                cardContainer.innerHTML = '<p>No card data found. Please create your card first.</p>';
+            }
+        }
+
+        // Function to redirect back to the home page for editing
+        function editCard() {
+            window.location.href = 'home.html';
+        }
+
+        // Function to proceed to the payment page
+        function proceedToPayment() {
+            window.location.href = 'finalform2.html';
+        }
+
+        // Display the card when the page loads
+        window.onload = displaySavedCard;
+    </script>
+</body>
+</html>
