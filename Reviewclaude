@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Integration</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div id="main-container">
+        <!-- Your existing card container -->
+        <div id="card-container">
+            <!-- ... -->
+        </div>
+
+        <!-- Payment form -->
+        <form id="payment-form">
+            <div id="payment-element"></div>
+            <button id="submit-button">Pay Now</button>
+            <div id="payment-message"></div>
+        </form>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('your_publishable_key');
+        let elements;
+        let paymentElement;
+
+        async function initialize() {
+            // Create payment intent
+            const response = await fetch('/.netlify/functions/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: 1000 }) // Amount in cents
+            });
+            
+            const { clientSecret } = await response.json();
+
+            // Set up Stripe Elements
+            elements = stripe.elements({ clientSecret });
+            paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
+        }
+
+        // Handle form submission
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const { error } = await stripe.confirmPayment({
+                elements,
+                confirmParams: {
+                    return_url: window.location.origin + '/success',
+                }
+            });
+
+            if (error) {
+                const messageDiv = document.getElementById('payment-message');
+                messageDiv.textContent = error.message;
+            } else {
+                // Payment successful
+                const cardData = localStorage.getItem('cardHTML');
+                
+                // Send card data to success handler
+                const response = await fetch('/.netlify/functions/payment-success', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        paymentIntentId: clientSecret.split('_secret')[0],
+                        cardData: cardData
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = result.redirectUrl;
+                }
+            }
+        });
+
+        initialize();
+    </script>
+</body>
+</html>
