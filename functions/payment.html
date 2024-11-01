@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Page</title>
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <form id="payment-form">
+    <div>
+      <label for="name">Name</label>
+      <input id="name" type="text" required>
+    </div>
+    
+    <div id="card-element">
+      <!-- A Stripe Element will be inserted here. -->
+    </div>
+
+    <!-- Used to display form errors. -->
+    <div id="card-errors" role="alert"></div>
+
+    <button id="pay-button" type="submit">Pay Now</button>
+  </form>
+
+  <script src="/path/to/your/payment-script.js"></script>
+</body>
+</html>
